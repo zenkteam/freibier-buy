@@ -1,25 +1,27 @@
-# Taquito Boilerplate in React
+# Freibier.io Buy Integration
 
-![Built with Taquito][logo]
+![Screenshot](https://github.com/zenkteam/freibier-buy/blob/master/docs/screenshot.png?raw=true)
 
-A minimal React setup for starting developing Tezos DApps quickly with Taquito.
+Quipuswap integration to buy CVZA tokens from any website.
 
-## Getting Started
+## Usage
 
-1. Create a new repository from taquito-boilerplate by clicking "Use this template".
-2. Clone your new repository:
+-- comming soon --
 
-   `git clone <YOUR_REPOSITORY_URL>`
+## Development
 
-3. Change your current working directory to the newly cloned repository directory.
-4. Install dependencies:
+1. Clone your new repository:
+
+   `git clone git@github.com:zenkteam/freibier-buy.git`
+
+2. Change your current working directory to the newly cloned repository directory.
+3. Install dependencies:
 
    `npm install`
 
-5. Start development server:
+4. Start development server:
 
    `npm run start`
 
-6. Open https://localhost:3000 in your browser to see a sample application.
+5. Open https://localhost:3000 in your browser to see a sample application.
 
-[logo]: https://raw.githubusercontent.com/ecadlabs/taquito-boilerplate/master/assets/built-with-taquito.png "Built with Taquito"
