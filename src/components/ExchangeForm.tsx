@@ -19,6 +19,11 @@ interface CoinGeckoPrice {
   usd_market_cap: number;
 }
 
+const fee = 0.003;
+const maxSlippage = 0.005;
+const tezMultiplyer = 10 ** 6;
+const tokenMultiplyer = 10 ** 8;
+
 const ExchangeForm = ({ contract, setUserBalance, Tezos, userAddress, setStorage, storage }: ExchangeFormProps) => {
 
   const [tezUsd, setTezUsd] = useState<CoinGeckoPrice>(config.defaultTezPrice);
@@ -33,11 +38,6 @@ const ExchangeForm = ({ contract, setUserBalance, Tezos, userAddress, setStorage
 
   const [loadingBuy, setLoadingBuy] = useState<boolean>(false);
   const [useDollar, setUseDollar] = useState<boolean>(false);
-
-  const fee = 0.003;
-  const maxSlippage = 0.005;
-  const tezMultiplyer = 10 ** 6;
-  const tokenMultiplyer = 10 ** 8;
 
   // https://www.coingecko.com/en/api#explore-api
   useEffect(() => {
@@ -89,6 +89,7 @@ const ExchangeForm = ({ contract, setUserBalance, Tezos, userAddress, setStorage
     userChangeTezDollar(parseFloat(event.target.value) || 0)
   }
   function userChangeTezDollar(amount_tez_dollar: number) {
+    amount_tez_dollar = Math.round(amount_tez_dollar * 100) / 100;
     const amount_tez = amount_tez_dollar / tezUsd.usd;
     // b = 0.97 * a * y/(x + 0.97 * a)
     let amount_token = (1 - fee) * amount_tez * tokenPool / (tezPool + (1 - fee) * amount_tez);
@@ -134,6 +135,22 @@ const ExchangeForm = ({ contract, setUserBalance, Tezos, userAddress, setStorage
     }
   };
 
+  function getSubmitButton() {
+    if (!userAddress) {
+      // connect first
+      return <></>;
+    }
+    if (loadingBuy) {
+      return <input type="submit" value="Please confirm the transaction" onClick={buy} id="w-node-cac1c974-81c3-bb3d-28aa-2c88c2fd1725-856d06c6" className="button long-submit-button bg-primary-4 w-button" />;
+    }
+
+    if (!tezPool) {
+      return <button id="w-node-cac1c974-81c3-bb3d-28aa-2c88c2fd1725-856d06c6" className="button long-submit-button w-button">Getting current exchange rate</button>;
+    }
+
+    return <input type="submit" value="Buy CVZA" onClick={buy} id="w-node-cac1c974-81c3-bb3d-28aa-2c88c2fd1725-856d06c6" className="button long-submit-button bg-primary-4 w-button" />;
+  }
+
   return (
     <div className="form-grid-vertical">
       <div className="form-row form-row-last">
@@ -150,6 +167,7 @@ const ExchangeForm = ({ contract, setUserBalance, Tezos, userAddress, setStorage
                   placeholder="0,00"
                   id="Input-Currency"
                   step="1"
+                  style={{'paddingRight': 60}}
                   value={amountTez}
                   onChange={(e) => onChangeTez(e)}
                   required
@@ -167,6 +185,7 @@ const ExchangeForm = ({ contract, setUserBalance, Tezos, userAddress, setStorage
                   placeholder="0,00"
                   id="Input-Currency"
                   step="1"
+                  style={{'paddingRight': 60}}
                   value={amountTezDollar}
                   onChange={(e) => onChangeTezDollar(e)}
                   required
@@ -175,7 +194,7 @@ const ExchangeForm = ({ contract, setUserBalance, Tezos, userAddress, setStorage
               </>
             }
 
-            <a href="#" className="link-block" style={{ backgroundColor: useDollar ? 'rgba(20,20,20,.5)' : '', color: useDollar ? 'white' : '', textAlign: 'center' }} onClick={() => setUseDollar(!useDollar)}>$</a>
+            <button className="link-block" style={{ backgroundColor: useDollar ? 'rgba(20,20,20,.5)' : '', color: useDollar ? 'white' : '', textAlign: 'center' }} onClick={() => setUseDollar(!useDollar)}>$</button>
 
             <div className="div-block-12">
               <div className="image-8">
@@ -186,10 +205,10 @@ const ExchangeForm = ({ contract, setUserBalance, Tezos, userAddress, setStorage
           <div id="w-node-_15a9de31-66d8-0b4b-3b7b-19a314a9d940-856d06c6" className="div-block-8">
             <div className="div-block-9">
               <div className="div-block-10">
-                <img loading="lazy" alt="" src="https://uploads-ssl.webflow.com/6091079111aa5aff3f19582d/609bdfbc8ef4b38115354a8e_2011.png" />
+                <img loading="lazy" alt="" className="token-img" src="https://uploads-ssl.webflow.com/6091079111aa5aff3f19582d/609bdfbc8ef4b38115354a8e_2011.png" />
               </div>
               <div>
-                <div className="small-text">
+                <div className="small-text exception-buying">
                   Tezos <span className="inline-badge-medium">XTC</span>
                 </div>
                 <div className="small-text crypto-price">
@@ -223,10 +242,10 @@ const ExchangeForm = ({ contract, setUserBalance, Tezos, userAddress, setStorage
           <div id="w-node-_15a9de31-66d8-0b4b-3b7b-19a314a9d949-856d06c6" className="div-block-8">
             <div className="div-block-9">
               <div className="div-block-10">
-                <img loading="lazy" alt="" src="https://uploads-ssl.webflow.com/6091079111aa5aff3f19582d/6092c567e1dfe71a28c3c339_1_ZdaWerzN9F7oIyhZEwcRqQ.jpeg" />
+                <img loading="lazy" alt="" className="token-img" src="https://uploads-ssl.webflow.com/6091079111aa5aff3f19582d/6092c567e1dfe71a28c3c339_1_ZdaWerzN9F7oIyhZEwcRqQ.jpeg" />
               </div>
               <div>
-                <div className="small-text">
+                <div className="small-text exception-buying">
                   Cerveza <span className="inline-badge-medium">cvza</span>
                 </div>
                 <div className="small-text crypto-price">
@@ -244,9 +263,8 @@ const ExchangeForm = ({ contract, setUserBalance, Tezos, userAddress, setStorage
           </div>
 
           { /* Submit */}
-          {userAddress &&
-            <input type="submit" value="Buy CVZA" onClick={buy} data-wait="Please wait..." id="w-node-cac1c974-81c3-bb3d-28aa-2c88c2fd1725-856d06c6" className="button long-submit-button bg-primary-4 w-button" />
-          }
+          { getSubmitButton() }
+          
         </div>
       </div>
     </div>

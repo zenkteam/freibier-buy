@@ -25,6 +25,7 @@ const ConnectButton = ({
   setPublicToken,
   wallet
 }: ButtonProps): JSX.Element => {
+  const [loadingWallet, setLoadingWallet] = useState<boolean>(false);
   const [loadingNano, setLoadingNano] = useState<boolean>(false);
 
   const setup = async (userAddress: string): Promise<void> => {
@@ -35,6 +36,7 @@ const ConnectButton = ({
   };
 
   const connectWallet = async (): Promise<void> => {
+    setLoadingWallet(true);
     try {
       await wallet.requestPermissions({
         network: {
@@ -49,6 +51,7 @@ const ConnectButton = ({
     } catch (error) {
       console.log(error);
     }
+    setLoadingWallet(false);
   };
 
   const connectNano = async (): Promise<void> => {
@@ -100,10 +103,18 @@ const ConnectButton = ({
   return (
     <>
       <button className="button long-submit-button bg-primary-4 w-button" onClick={connectWallet}>
-        Connect Wallet
+        {loadingWallet ? (
+          <span>
+            Confirm Connection
+          </span>
+        ) : (
+          <span>
+            Connect Wallet
+          </span>
+        )}
       </button>
 
-      <button className="button long-submit-button bg-primary-4 w-button" disabled={loadingNano} onClick={connectNano}>
+      <button className="button long-submit-button w-button" disabled={loadingNano} onClick={connectNano}>
         {loadingNano ? (
           <span>
             Loading, please wait

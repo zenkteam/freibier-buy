@@ -7,14 +7,6 @@ import qrcode from "qrcode-generator";
 import ExchangeForm from './components/ExchangeForm';
 import config from './config';
 
-enum BeaconConnection {
-  NONE = "",
-  LISTENING = "Listening to P2P channel",
-  CONNECTED = "Channel connected",
-  PERMISSION_REQUEST_SENT = "Permission request sent, waiting for response",
-  PERMISSION_REQUEST_SUCCESS = "Wallet is connected"
-}
-
 const App = () => {
   const [Tezos, setTezos] = useState<TezosToolkit>(
     new TezosToolkit(config.rpcUrl)
@@ -27,19 +19,17 @@ const App = () => {
   const [storage, setStorage] = useState<any>();
   const [copiedPublicToken, setCopiedPublicToken] = useState<boolean>(false);
   const [beaconConnection, setBeaconConnection] = useState<boolean>(false);
-  const [activeTab, setActiveTab] = useState<string>("contract");
 
   // creates contract instance
-  async function initContract() {
-    const newContract = await Tezos.wallet.at(config.swapContractAddress);
-    const newStorage: any = await newContract.storage();
-    setContract(newContract);
-    setStorage(newStorage);
-  }
   useEffect(() => {
+    async function initContract() {
+      const newContract = await Tezos.wallet.at(config.swapContractAddress);
+      const newStorage: any = await newContract.storage();
+      setContract(newContract);
+      setStorage(newStorage);
+    }
     initContract()
-  }, [])
-
+  }, [Tezos.wallet])
 
   const generateQrCode = (): { __html: string } => {
     const qr = qrcode(0, "L");
@@ -63,7 +53,7 @@ const App = () => {
             storage={storage}
           />
 
-          {!publicToken && !userAddress && !userBalance &&
+          {!userAddress &&
             <div className="w-layout-grid grid-4">
               <ConnectButton
                 Tezos={Tezos}
@@ -78,7 +68,7 @@ const App = () => {
           }
 
           { /* Connecting */}
-          {publicToken && (!userAddress || isNaN(userBalance)) &&
+          {false && publicToken && (!userAddress || isNaN(userBalance)) &&
             <div id="content">
               <p className="text-align-center">
                 <i className="fas fa-broadcast-tower"></i>&nbsp; Connecting to your wallet
