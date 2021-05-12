@@ -98,6 +98,7 @@ const ConnectButton = ({
         setBeaconConnection(true);
       }
     })();
+    // eslint-disable-next-line
   }, []);
 
   return (

@@ -61,13 +61,14 @@ const ExchangeForm = ({ contract, setUserBalance, Tezos, userAddress, setStorage
       tokenUsdNew.usd = tezPool / tokenPool * tezUsd.usd
       setTokenUsd(tokenUsdNew)
     }
-  }, [tezPool, tokenPool, tezUsd])
+  }, [tezPool, tokenPool, tezUsd, tokenUsd])
 
   // initial value
   useEffect(() => {
     if (tezPool && tokenPool) {
       userChangeTez(1)
     }
+    // eslint-disable-next-line
   }, [tezPool, tokenPool])
 
 
