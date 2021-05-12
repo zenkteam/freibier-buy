@@ -43,6 +43,7 @@ const ExchangeForm = ({ contract, setUserBalance, Tezos, userAddress, setStorage
   const [amountTokenDollar, setAmountTokenDollar] = useState<number>(0);
 
   const [loadingBuy, setLoadingBuy] = useState<boolean>(false);
+  const [useDollar, setUseDollar] = useState<boolean>(false);
 
   const fee = 0.003;
   const maxSlippage = 0.005;
@@ -89,9 +90,23 @@ const ExchangeForm = ({ contract, setUserBalance, Tezos, userAddress, setStorage
     // b = 0.97 * a * y/(x + 0.97 * a)
     let amount_token = (1-fee) * amount_tez * tokenPool / (tezPool + (1-fee) * amount_tez);
     amount_token = Math.round(amount_token * tokenMultiplyer) / tokenMultiplyer;
-    console.log(amount_token)
+
     setAmountTez(amount_tez);
     setAmountTezDollar(amount_tez * tezUsd.usd)
+    setAmountToken(amount_token);
+    setAmountTokenDollar(amount_token * tokenUsd.usd);
+  }
+  function onChangeTezDollar(event: any) {
+    userChangeTezDollar(parseFloat(event.target.value) || 0)
+  }
+  function userChangeTezDollar(amount_tez_dollar: number) {
+    const amount_tez = amount_tez_dollar / tezUsd.usd;
+    // b = 0.97 * a * y/(x + 0.97 * a)
+    let amount_token = (1-fee) * amount_tez * tokenPool / (tezPool + (1-fee) * amount_tez);
+    amount_token = Math.round(amount_token * tokenMultiplyer) / tokenMultiplyer;
+
+    setAmountTez(amount_tez);
+    setAmountTezDollar(amount_tez_dollar)
     setAmountToken(amount_token);
     setAmountTokenDollar(amount_token * tokenUsd.usd);
   }
@@ -114,7 +129,6 @@ const ExchangeForm = ({ contract, setUserBalance, Tezos, userAddress, setStorage
     setLoadingBuy(true);
     try {
       const minToken = Math.round(amountToken * tokenMultiplyer * (1 - maxSlippage));
-      console.log(amountTez, minToken)
       const op = await contract.methods.tezToTokenPayment(minToken, userAddress).send({
         storageLimit: 0,
         amount: amountTez * tezMultiplyer,
@@ -136,20 +150,46 @@ const ExchangeForm = ({ contract, setUserBalance, Tezos, userAddress, setStorage
       <div className="form-row form-row-last">
         <div className="w-layout-grid grid-4">
           <div className="div-block-11">
-            <input 
-              type="number" 
-              className="form-input form-input-large currency w-input"
-              name="Input-Currency"
-              data-name="Input Currency"
-              placeholder="0,00"
-              id="Input-Currency"
-              step="1"
-              value={amountTez}
-              onChange={(e) => onChangeTez(e)} 
-              required
-            />
-            <a href="#" className="link-block">$</a>
-            <div className="text-currency">~${amountTezDollar.toLocaleString(undefined, { minimumFractionDigits: 2 })}</div>
+            
+            { !useDollar && 
+              <>
+                <input 
+                  type="number" 
+                  className="form-input form-input-large currency w-input"
+                  name="Input-Currency"
+                  data-name="Input Currency"
+                  placeholder="0,00"
+                  id="Input-Currency"
+                  step="1"
+                  value={amountTez}
+                  onChange={(e) => onChangeTez(e)} 
+                  required
+                />
+                <div className="text-currency">~${amountTezDollar.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
+              </>
+            }
+            { useDollar && 
+              <>
+                <input 
+                  type="number" 
+                  className="form-input form-input-large currency w-input"
+                  name="Input-Currency"
+                  data-name="Input Currency"
+                  placeholder="0,00"
+                  id="Input-Currency"
+                  step="1"
+                  value={amountTezDollar}
+                  onChange={(e) => onChangeTezDollar(e)} 
+                  required
+                />
+                <div className="text-currency">{amountTez.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 6 })} ꜩ</div>
+              </>
+            }
+            
+            
+            
+            <a href="#" className="link-block" style={{backgroundColor: useDollar ? 'rgba(20,20,20,.5)' : '', color: useDollar ? 'white' : '', textAlign: 'center'}} onClick={() => setUseDollar(!useDollar)}>$</a>
+            
             <div className="div-block-12">
               <div className="image-8">
                 <img loading="lazy" alt="" className="image-9" src="https://uploads-ssl.webflow.com/6091079111aa5aff3f19582d/6091079111aa5a643419586e_icon-arrow-down.svg" />
@@ -184,14 +224,14 @@ const ExchangeForm = ({ contract, setUserBalance, Tezos, userAddress, setStorage
               className="form-input form-input-large currency w-input"
               name="Output-Currency"
               data-name="Output Currency"
-              placeholder="0.00"
+              placeholder="0,00"
               id="Output-Currency"
-              step="1"
+              step="10000"
               value={amountToken}
               onChange={(e) => onChangeToken(e)} 
               required
             />
-            <div className="text-currency">~${amountTokenDollar.toLocaleString(undefined, { minimumFractionDigits: 2 })}</div>
+            <div className="text-currency">~${amountTokenDollar.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
           </div>
           <div id="w-node-_15a9de31-66d8-0b4b-3b7b-19a314a9d949-856d06c6" className="div-block-8">
             <div className="div-block-9">
