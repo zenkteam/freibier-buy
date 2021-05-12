@@ -1,6 +1,6 @@
 # Freibier.io Buy Integration
 
-![Screenshot](https://github.com/zenkteam/freibier-buy/blob/master/docs/screenshot.png?raw=true)
+![Screenshot](https://raw.githubusercontent.com/zenkteam/freibier-buy/master/docu/screenshot.png)
 
 Quipuswap integration to buy CVZA tokens from any website.
 
