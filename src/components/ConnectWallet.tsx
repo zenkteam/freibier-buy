@@ -1,13 +1,10 @@
 import React, { Dispatch, SetStateAction, useState, useEffect } from "react";
 import { TezosToolkit } from "@taquito/taquito";
 import { BeaconWallet } from "@taquito/beacon-wallet";
-import {
-  NetworkType,
-  BeaconEvent,
-  defaultEventCallbacks
-} from "@airgap/beacon-sdk";
+import { BeaconEvent, defaultEventCallbacks } from "@airgap/beacon-sdk";
 import TransportU2F from "@ledgerhq/hw-transport-u2f";
 import { LedgerSigner } from "@taquito/ledger-signer";
+import config from '../config';
 
 type ButtonProps = {
   Tezos: TezosToolkit;
@@ -41,8 +38,8 @@ const ConnectButton = ({
     try {
       await wallet.requestPermissions({
         network: {
-          type: NetworkType.MAINNET,
-          rpcUrl: "https://rpc.tzbeta.net" // "https://api.tez.ie/rpc/edonet"
+          type: config.network,
+          rpcUrl: config.rpcUrl,
         }
       });
       // gets user's address
@@ -76,7 +73,7 @@ const ConnectButton = ({
       // creates a wallet instance
       const wallet = new BeaconWallet({
         name: "Freibier.io",
-        preferredNetwork: NetworkType.MAINNET,
+        preferredNetwork: config.network,
         disableDefaultEvents: true, // Disable all events / UI. This also disables the pairing alert.
         eventHandlers: {
           // To keep the pairing alert, we have to add the following default event handlers back
@@ -105,7 +102,7 @@ const ConnectButton = ({
       <button className="button long-submit-button bg-primary-4 w-button" onClick={connectWallet}>
         Connect Wallet
       </button>
-        
+
       <button className="button long-submit-button bg-primary-4 w-button" disabled={loadingNano} onClick={connectNano}>
         {loadingNano ? (
           <span>
