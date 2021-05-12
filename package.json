@@ -26,6 +26,7 @@
     "test": "react-scripts test",
     "eject": "react-scripts eject"
   },
+  "homepage": "https://zenkteam.github.io/freibier-buy/",
   "eslintConfig": {
     "extends": "react-app"
   },
