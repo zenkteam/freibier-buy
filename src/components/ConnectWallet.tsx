@@ -11,12 +11,9 @@ import { LedgerSigner } from "@taquito/ledger-signer";
 
 type ButtonProps = {
   Tezos: TezosToolkit;
-  setContract: Dispatch<SetStateAction<any>>;
   setWallet: Dispatch<SetStateAction<any>>;
   setUserAddress: Dispatch<SetStateAction<string>>;
   setUserBalance: Dispatch<SetStateAction<number>>;
-  setStorage: Dispatch<SetStateAction<number>>;
-  contractAddress: string;
   setBeaconConnection: Dispatch<SetStateAction<boolean>>;
   setPublicToken: Dispatch<SetStateAction<string | null>>;
   wallet: BeaconWallet;
@@ -24,12 +21,9 @@ type ButtonProps = {
 
 const ConnectButton = ({
   Tezos,
-  setContract,
   setWallet,
   setUserAddress,
   setUserBalance,
-  setStorage,
-  contractAddress,
   setBeaconConnection,
   setPublicToken,
   wallet
@@ -41,19 +35,14 @@ const ConnectButton = ({
     // updates balance
     const balance = await Tezos.tz.getBalance(userAddress);
     setUserBalance(balance.toNumber());
-    // creates contract instance
-    const contract = await Tezos.wallet.at(contractAddress);
-    const storage: any = await contract.storage();
-    setContract(contract);
-    setStorage(storage.toNumber());
   };
 
   const connectWallet = async (): Promise<void> => {
     try {
       await wallet.requestPermissions({
         network: {
-          type: NetworkType.EDONET,
-          rpcUrl: "https://api.tez.ie/rpc/edonet"
+          type: NetworkType.MAINNET,
+          rpcUrl: "https://rpc.tzbeta.net" // "https://api.tez.ie/rpc/edonet"
         }
       });
       // gets user's address
@@ -86,8 +75,8 @@ const ConnectButton = ({
     (async () => {
       // creates a wallet instance
       const wallet = new BeaconWallet({
-        name: "Taquito Boilerplate",
-        preferredNetwork: NetworkType.EDONET,
+        name: "Freibier.io",
+        preferredNetwork: NetworkType.MAINNET,
         disableDefaultEvents: true, // Disable all events / UI. This also disables the pairing alert.
         eventHandlers: {
           // To keep the pairing alert, we have to add the following default event handlers back
@@ -112,25 +101,23 @@ const ConnectButton = ({
   }, []);
 
   return (
-    <div className="buttons">
-      <button className="button" onClick={connectWallet}>
-        <span>
-          <i className="fas fa-wallet"></i>&nbsp; Connect with wallet
-        </span>
+    <>
+      <button className="button long-submit-button bg-primary-4 w-button" onClick={connectWallet}>
+        Connect Wallet
       </button>
-      <button className="button" disabled={loadingNano} onClick={connectNano}>
+        
+      <button className="button long-submit-button bg-primary-4 w-button" disabled={loadingNano} onClick={connectNano}>
         {loadingNano ? (
           <span>
-            <i className="fas fa-spinner fa-spin"></i>&nbsp; Loading, please
-            wait
+            Loading, please wait
           </span>
         ) : (
           <span>
-            <i className="fab fa-usb"></i>&nbsp; Connect with Ledger Nano
+            Connect Ledger Nano
           </span>
         )}
       </button>
-    </div>
+    </>
   );
 };
 

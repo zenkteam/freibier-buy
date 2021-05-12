@@ -22,7 +22,6 @@ const Transfers = ({
           .transfer({ to: recipient, amount: parseInt(amount) })
           .send();
         await op.confirmation();
-        setRecipient("");
         setAmount("");
         const balance = await Tezos.tz.getBalance(userAddress);
         setUserBalance(balance.toNumber());
@@ -36,12 +35,6 @@ const Transfers = ({
 
   return (
     <div id="transfer-inputs">
-      <input
-        type="text"
-        placeholder="Recipient"
-        value={recipient}
-        onChange={e => setRecipient(e.target.value)}
-      />
       <input
         type="number"
         placeholder="Amount"

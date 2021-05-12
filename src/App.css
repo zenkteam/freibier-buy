@@ -1,4 +1,4 @@
-html,
+/* html,
 body,
 #root {
   height: 100%;
@@ -6,6 +6,7 @@ body,
   margin: 0px;
   padding: 0px;
   font-size: 1rem;
+  background: lightgray;
 }
 
 #root {
@@ -47,12 +48,6 @@ header {
   display: flex;
   flex-direction: column;
   padding: 20px;
-}
-
-#footer {
-  display: flex;
-  justify-content: flex-end;
-  padding-top: 20px;
 }
 
 .buttons {
@@ -176,15 +171,49 @@ a:hover {
   text-align: right;
 }
 
-/* Removes arrows in input number */
-/* Chrome, Safari, Edge, Opera */
 input::-webkit-outer-spin-button,
 input::-webkit-inner-spin-button {
   -webkit-appearance: none;
   margin: 0;
 }
 
-/* Firefox */
 input[type="number"] {
   -moz-appearance: textfield;
 }
+
+
+
+.currencyBox {
+  display: flex;
+  color: white;
+}
+
+.currencyIcon {
+  height: 30px;
+  width: 30px;
+  border-radius: 30px;
+  margin: 3px;
+  position: absolute;
+}
+
+.currencyInput {
+  border: none;
+  background: transparent;
+  color: white;
+  text-align: right;
+  background-color: #424242;
+  height: 34px;
+  width: 250px;
+  border-radius: 34px;
+  padding-right: 20px;
+  outline: none;
+}
+.currencyInput:hover {
+  background-color: black;
+}
+
+.currencyName {
+  line-height: 36px;
+  position: absolute;
+  margin-left: 40px;
+} */

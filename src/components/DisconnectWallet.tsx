@@ -22,15 +22,14 @@ const DisconnectButton = ({
   setBeaconConnection
 }: ButtonProps): JSX.Element => {
   const disconnectWallet = async (): Promise<void> => {
-    //window.localStorage.clear();
     setUserAddress("");
     setUserBalance(0);
     setWallet(null);
-    const tezosTK = new TezosToolkit("https://api.tez.ie/rpc/edonet");
+    const tezosTK = new TezosToolkit("https://rpc.tzbeta.net");
     setTezos(tezosTK);
     setBeaconConnection(false);
     setPublicToken(null);
-    console.log("disconnecting wallet");
+    
     if (wallet) {
       await wallet.client.removeAllAccounts();
       await wallet.client.removeAllPeers();
@@ -39,11 +38,9 @@ const DisconnectButton = ({
   };
 
   return (
-    <div className="buttons">
-      <button className="button" onClick={disconnectWallet}>
-        <i className="fas fa-times"></i>&nbsp; Disconnect wallet
-      </button>
-    </div>
+    <button className="button align-center" onClick={disconnectWallet}>
+      Disconnect wallet
+    </button>
   );
 };
 
