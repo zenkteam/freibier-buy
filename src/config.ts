@@ -14,7 +14,7 @@ const config = {
   defaultTokenPrice: {
     last_updated_at: 1620838463,
     usd: 0.00012,
-    usd_24h_change: 3240,
+    usd_24h_change: 120,
     usd_24h_vol: 0,
     usd_market_cap: 0,
   }

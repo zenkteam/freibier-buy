@@ -251,13 +251,14 @@ const ExchangeForm = ({ contract, setUserBalance, Tezos, userAddress, setStorage
                 </div>
                 <div className="small-text crypto-price">
                   ~${tokenUsd.usd.toLocaleString(undefined, { minimumFractionDigits: 5, maximumFractionDigits: 5 })}
-                  &nbsp;
+                  {/* deactivated while we don't have live updates */}
+                  {/* &nbsp;
                   {tokenUsd.usd_24h_change < 0 &&
                     <span className="inline-badge-medium red">↓ {tokenUsd.usd_24h_change.toLocaleString(undefined, { maximumFractionDigits: 2 })}%</span>
                   }
                   {tokenUsd.usd_24h_change > 0 &&
                     <span className="inline-badge-medium green">↑ {tokenUsd.usd_24h_change.toLocaleString(undefined, { maximumFractionDigits: 2 })}%</span>
-                  }
+                  } */}
                 </div>
               </div>
             </div>
