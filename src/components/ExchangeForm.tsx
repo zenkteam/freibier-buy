@@ -23,6 +23,7 @@ const fee = 0.003;
 const maxSlippage = 0.005;
 const tezMultiplyer = 10 ** 6;
 const tokenMultiplyer = 10 ** 8;
+const displayPositions = 2;
 
 const ExchangeForm = ({ contract, setUserBalance, Tezos, userAddress, setStorage, storage }: ExchangeFormProps) => {
 
@@ -73,16 +74,18 @@ const ExchangeForm = ({ contract, setUserBalance, Tezos, userAddress, setStorage
 
 
   // handle user changes
+  function round(value: number, amount: number) {
+    return Math.round(value * 10 ** amount) / 10 ** amount;
+  }
   function onChangeTez(event: any) { // ChangeEvent<HTMLInputElement>
     userChangeTez(parseFloat(event.target.value) || 0)
   }
   function userChangeTez(amount_tez: number) {
-    // b = 0.97 * a * y/(x + 0.97 * a)
-    let amount_token = (1 - fee) * amount_tez * tokenPool / (tezPool + (1 - fee) * amount_tez);
-    amount_token = Math.round(amount_token * tokenMultiplyer) / tokenMultiplyer;
-
+    // b = 0.997 * a * y/(x + 0.997 * a)
+    const amount_token = round((1 - fee) * amount_tez * tokenPool / (tezPool + (1 - fee) * amount_tez), displayPositions);
+    
     setAmountTez(amount_tez);
-    setAmountTezDollar(amount_tez * tezUsd.usd)
+    setAmountTezDollar(round(amount_tez * tezUsd.usd, displayPositions))
     setAmountToken(amount_token);
     setAmountTokenDollar(amount_token * tokenUsd.usd);
   }
@@ -90,11 +93,11 @@ const ExchangeForm = ({ contract, setUserBalance, Tezos, userAddress, setStorage
     userChangeTezDollar(parseFloat(event.target.value) || 0)
   }
   function userChangeTezDollar(amount_tez_dollar: number) {
-    amount_tez_dollar = Math.round(amount_tez_dollar * 100) / 100;
-    const amount_tez = amount_tez_dollar / tezUsd.usd;
-    // b = 0.97 * a * y/(x + 0.97 * a)
-    let amount_token = (1 - fee) * amount_tez * tokenPool / (tezPool + (1 - fee) * amount_tez);
-    amount_token = Math.round(amount_token * tokenMultiplyer) / tokenMultiplyer;
+    amount_tez_dollar = round(amount_tez_dollar, displayPositions);
+    const amount_tez = round(amount_tez_dollar / tezUsd.usd, displayPositions);
+
+    // b = 0.997 * a * y/(x + 0.997 * a)
+    const amount_token = round((1 - fee) * amount_tez * tokenPool / (tezPool + (1 - fee) * amount_tez), displayPositions);
 
     setAmountTez(amount_tez);
     setAmountTezDollar(amount_tez_dollar)
@@ -105,9 +108,8 @@ const ExchangeForm = ({ contract, setUserBalance, Tezos, userAddress, setStorage
     userChangeToken(parseFloat(event.target.value) || 0)
   }
   function userChangeToken(amount_token: number) {
-    // b = 0.97 * a * y/(x + 0.97 * a)
-    let amount_tez = (1 - fee) * amount_token * tezPool / (tokenPool + (1 - fee) * amount_token);
-    amount_tez = Math.round(amount_tez * tezMultiplyer) / tezMultiplyer;
+    // b = 1.003 * a * y/(x - 1.003 * a)
+    const amount_tez = round((1 + fee) * amount_token * tezPool / (tokenPool - (1 + fee) * amount_token), displayPositions);
 
     setAmountTez(amount_tez);
     setAmountTezDollar(amount_tez * tezUsd.usd)
@@ -149,6 +151,10 @@ const ExchangeForm = ({ contract, setUserBalance, Tezos, userAddress, setStorage
       return <button id="w-node-cac1c974-81c3-bb3d-28aa-2c88c2fd1725-856d06c6" className="button long-submit-button w-button">Getting current exchange rate</button>;
     }
 
+    if (!amountTez || !amountToken) {
+      return <input type="submit" value="Buy CVZA" id="w-node-cac1c974-81c3-bb3d-28aa-2c88c2fd1725-856d06c6" className="button long-submit-button bg-primary-4 w-button" disabled style={{backgroundColor: '#ebebec'}} />;
+    }
+
     return <input type="submit" value="Buy CVZA" onClick={buy} id="w-node-cac1c974-81c3-bb3d-28aa-2c88c2fd1725-856d06c6" className="button long-submit-button bg-primary-4 w-button" />;
   }
 
@@ -169,7 +175,7 @@ const ExchangeForm = ({ contract, setUserBalance, Tezos, userAddress, setStorage
                   id="Input-Currency"
                   step="1"
                   style={{'paddingRight': 60}}
-                  value={amountTez}
+                  value={amountTez || ''}
                   onChange={(e) => onChangeTez(e)}
                   required
                 />
@@ -178,6 +184,7 @@ const ExchangeForm = ({ contract, setUserBalance, Tezos, userAddress, setStorage
             }
             {useDollar &&
               <>
+                <span style={{position: 'absolute', left: 18, top: 10, color: '#141414'}}>$</span>
                 <input
                   type="number"
                   className="form-input form-input-large currency w-input"
@@ -186,12 +193,12 @@ const ExchangeForm = ({ contract, setUserBalance, Tezos, userAddress, setStorage
                   placeholder="0,00"
                   id="Input-Currency"
                   step="1"
-                  style={{'paddingRight': 60}}
-                  value={amountTezDollar}
+                  style={{paddingRight: 60, paddingLeft: 30}}
+                  value={amountTezDollar || ''}
                   onChange={(e) => onChangeTezDollar(e)}
                   required
                 />
-                <div className="text-currency">{amountTez.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 6 })} ꜩ</div>
+                <div className="text-currency">~{amountTez.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ꜩ</div>
               </>
             }
 
@@ -234,7 +241,8 @@ const ExchangeForm = ({ contract, setUserBalance, Tezos, userAddress, setStorage
               placeholder="0,00"
               id="Output-Currency"
               step="10000"
-              value={amountToken}
+              style={{paddingRight: 12}}
+              value={amountToken || ''}
               onChange={(e) => onChangeToken(e)}
               required
             />
