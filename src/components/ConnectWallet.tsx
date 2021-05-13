@@ -50,8 +50,8 @@ const ConnectButton = ({
       setBeaconConnection(true);
     } catch (error) {
       console.log(error);
+      setLoadingWallet(false);
     }
-    setLoadingWallet(false);
   };
 
   const connectNano = async (): Promise<void> => {
@@ -103,7 +103,7 @@ const ConnectButton = ({
 
   return (
     <>
-      <button className="button long-submit-button bg-primary-4 w-button" onClick={connectWallet}>
+      <button className="button long-submit-button bg-primary-4 w-button" id="w-node-cac1c974-81c3-bb3d-28aa-2c88c2fd1725-856d06c6" onClick={connectWallet}>
         {loadingWallet ? (
           <span>
             Confirm Connection
@@ -115,7 +115,7 @@ const ConnectButton = ({
         )}
       </button>
 
-      <button className="button long-submit-button w-button" disabled={loadingNano} onClick={connectNano}>
+      <button className="button long-submit-button w-button" id="w-node-cac1c974-81c3-bb3d-28aa-2c88c2fd1725-856d06c6" disabled={loadingNano} onClick={connectNano}>
         {loadingNano ? (
           <span>
             Loading, please wait

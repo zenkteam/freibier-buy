@@ -148,7 +148,7 @@ const ExchangeForm = ({ contract, setUserBalance, Tezos, userAddress, setStorage
     }
 
     if (!tezPool) {
-      return <button id="w-node-cac1c974-81c3-bb3d-28aa-2c88c2fd1725-856d06c6" className="button long-submit-button w-button">Getting current exchange rate</button>;
+      return <button id="w-node-cac1c974-81c3-bb3d-28aa-2c88c2fd1725-856d06c6" className="button long-submit-button w-button">Loading exchange rate</button>;
     }
 
     if (!amountTez || !amountToken) {
@@ -159,9 +159,7 @@ const ExchangeForm = ({ contract, setUserBalance, Tezos, userAddress, setStorage
   }
 
   return (
-    <div className="form-grid-vertical">
-      <div className="form-row form-row-last">
-        <div className="w-layout-grid grid-4">
+        <>
           <div className="div-block-11">
 
             {!useDollar &&
@@ -274,10 +272,7 @@ const ExchangeForm = ({ contract, setUserBalance, Tezos, userAddress, setStorage
 
           { /* Submit */}
           { getSubmitButton() }
-          
-        </div>
-      </div>
-    </div>
+        </>
   )
 }
 

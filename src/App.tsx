@@ -43,29 +43,45 @@ const App = () => {
     <div className="card bg-primary-1">
       <div className="card-body">
         <div className="form-block content-width-large align-center w-form">
+          <div className="form-grid-vertical">
+            <div className="form-row form-row-last">
+              <div className="w-layout-grid grid-4">
+                <ExchangeForm
+                  contract={contract}
+                  setUserBalance={setUserBalance}
+                  Tezos={Tezos}
+                  userAddress={userAddress}
+                  setStorage={setStorage}
+                  storage={storage}
+                />
 
-          <ExchangeForm
-            contract={contract}
-            setUserBalance={setUserBalance}
-            Tezos={Tezos}
-            userAddress={userAddress}
-            setStorage={setStorage}
-            storage={storage}
-          />
+                {!userAddress &&
+                  <ConnectButton
+                    Tezos={Tezos}
+                    setPublicToken={setPublicToken}
+                    setWallet={setWallet}
+                    setUserAddress={setUserAddress}
+                    setUserBalance={setUserBalance}
+                    setBeaconConnection={setBeaconConnection}
+                    wallet={wallet}
+                  />
+                }
 
-          {!userAddress &&
-            <div className="w-layout-grid grid-4">
-              <ConnectButton
-                Tezos={Tezos}
-                setPublicToken={setPublicToken}
-                setWallet={setWallet}
-                setUserAddress={setUserAddress}
-                setUserBalance={setUserBalance}
-                setBeaconConnection={setBeaconConnection}
-                wallet={wallet}
-              />
+                { /* Disconnect */}
+                {userAddress &&
+                  <DisconnectButton
+                    wallet={wallet}
+                    setPublicToken={setPublicToken}
+                    setUserAddress={setUserAddress}
+                    setUserBalance={setUserBalance}
+                    setWallet={setWallet}
+                    setTezos={setTezos}
+                    setBeaconConnection={setBeaconConnection}
+                  />
+                }
+              </div>
             </div>
-          }
+          </div>
 
           { /* Connecting */}
           {false && publicToken && (!userAddress || isNaN(userBalance)) &&
@@ -107,18 +123,6 @@ const App = () => {
             </div>
           }
 
-          { /* Disconnect */}
-          {userAddress &&
-            <DisconnectButton
-              wallet={wallet}
-              setPublicToken={setPublicToken}
-              setUserAddress={setUserAddress}
-              setUserBalance={setUserBalance}
-              setWallet={setWallet}
-              setTezos={setTezos}
-              setBeaconConnection={setBeaconConnection}
-            />
-          }
         </div>
       </div>
     </div>
