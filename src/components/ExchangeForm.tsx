@@ -109,8 +109,10 @@ const ExchangeForm = ({ contract, setUserBalance, Tezos, userAddress, setStorage
   }
   function userChangeToken(amount_token: number) {
     // b = 1.003 * a * y/(x - 1.003 * a)
-    const amount_tez = round((1 + fee) * amount_token * tezPool / (tokenPool - (1 + fee) * amount_token), displayPositions);
-
+    let amount_tez = round((1 + fee) * amount_token * tezPool / (tokenPool - (1 + fee) * amount_token), displayPositions);
+    if (amount_tez < 0) {
+      amount_tez = 0;
+    }
     setAmountTez(amount_tez);
     setAmountTezDollar(amount_tez * tezUsd.usd)
     setAmountToken(amount_token);
@@ -169,7 +171,7 @@ const ExchangeForm = ({ contract, setUserBalance, Tezos, userAddress, setStorage
                   className="form-input form-input-large currency w-input"
                   name="Input-Currency"
                   data-name="Input Currency"
-                  placeholder="0,00"
+                  placeholder="0.00"
                   id="Input-Currency"
                   step="1"
                   style={{'paddingRight': 60}}
@@ -188,7 +190,7 @@ const ExchangeForm = ({ contract, setUserBalance, Tezos, userAddress, setStorage
                   className="form-input form-input-large currency w-input"
                   name="Input-Currency"
                   data-name="Input Currency"
-                  placeholder="0,00"
+                  placeholder="0.00"
                   id="Input-Currency"
                   step="1"
                   style={{paddingRight: 60, paddingLeft: 30}}
@@ -215,7 +217,7 @@ const ExchangeForm = ({ contract, setUserBalance, Tezos, userAddress, setStorage
               </div>
               <div>
                 <div className="small-text exception-buying">
-                  Tezos <span className="inline-badge-medium">XTC</span>
+                  Tezos <span className="inline-badge-medium">XTZ</span>
                 </div>
                 <div className="small-text crypto-price">
                   ~${tezUsd.usd.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
@@ -236,7 +238,7 @@ const ExchangeForm = ({ contract, setUserBalance, Tezos, userAddress, setStorage
               className="form-input form-input-large currency w-input"
               name="Output-Currency"
               data-name="Output Currency"
-              placeholder="0,00"
+              placeholder="0.00"
               id="Output-Currency"
               step="10000"
               style={{paddingRight: 12}}

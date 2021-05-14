@@ -6,7 +6,9 @@ Quipuswap integration to buy CVZA tokens from any website.
 
 ## Usage
 
--- comming soon --
+Try it on https://zenkteam.github.io/freibier-buy/
+
+To embed it in your site add an `<div id="root"></div>` element to your page and copy the style and script tags from https://zenkteam.github.io/freibier-buy/
 
 ## Development
 
