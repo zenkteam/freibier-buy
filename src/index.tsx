@@ -1,7 +1,7 @@
 import React from "react";
 import ReactDOM from "react-dom";
 import App from "./App";
-import Price from "./Price";
+import PriceChart from "./PriceChart";
 
 // init exchange
 const appNode = document.getElementById("root");
@@ -16,12 +16,12 @@ if (appNode) {
 
 
 // init Price display
-const priceNode = document.getElementById("price");
-if (priceNode) {
+const priceChartNode = document.getElementById("price-chart");
+if (priceChartNode) {
   ReactDOM.render(
     <React.StrictMode>
-      <Price />
+      <PriceChart />
     </React.StrictMode>,
-    priceNode
+    priceChartNode
   );
 }

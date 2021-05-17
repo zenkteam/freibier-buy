@@ -65,7 +65,7 @@ const ExchangeForm = ({ contract, setUserBalance, Tezos, userAddress, setStorage
       // update other UIs
       const pricePerTezNode = document.getElementById("price-per-tez");
       if (pricePerTezNode) {
-        pricePerTezNode.innerHTML = (tezPool / tokenPool).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 5 }) + 'ꜩ';
+        pricePerTezNode.innerHTML = (tezPool / tokenPool).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 6 }) + ' ꜩ';
       }
       const pricePerUsdNode = document.getElementById("price-per-usd");
       if (pricePerUsdNode) {
