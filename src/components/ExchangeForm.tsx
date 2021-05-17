@@ -63,13 +63,19 @@ const ExchangeForm = ({ contract, setUserBalance, Tezos, userAddress, setStorage
       setTokenUsd(tokenUsdNew)
 
       // update other UIs
-      const pricePerTezNode = document.getElementById("price-per-tez");
-      if (pricePerTezNode) {
-        pricePerTezNode.innerHTML = (tezPool / tokenPool).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 6 }) + ' ꜩ';
+      const pricePerTezNode = document.getElementsByClassName("price-per-tez");
+      if (pricePerTezNode.length) {
+        const content = (tezPool / tokenPool).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 6 }) + ' ꜩ';
+        for (const tag of pricePerTezNode) {
+          tag.innerHTML = content;
+        }
       }
-      const pricePerUsdNode = document.getElementById("price-per-usd");
-      if (pricePerUsdNode) {
-        pricePerUsdNode.innerHTML = '$' + (tokenUsdNew.usd).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 5 });
+      const pricePerUsdNode = document.getElementsByClassName("price-per-usd");
+      if (pricePerUsdNode.length) {
+        const content = '$' + (tokenUsdNew.usd).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 5 });
+        for (const tag of pricePerUsdNode) {
+          tag.innerHTML = content;
+        }
       }
     }
   }, [tezPool, tokenPool, tezUsd, tokenUsd])

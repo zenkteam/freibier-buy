@@ -8,7 +8,24 @@ Quipuswap integration to buy CVZA tokens from any website.
 
 Try it on https://zenkteam.github.io/freibier-buy/
 
-To embed it in your site add an `<div id="root"></div>` element to your page and copy the style and script tags from https://zenkteam.github.io/freibier-buy/
+To embed it in your site copy the style and script tags from https://zenkteam.github.io/freibier-buy/
+
+There are differente elements you can display on your site:
+
+```html
+<!-- embed the exchage form -->
+<div id="root"></div>
+
+<!-- embed a price chart -->
+<div id="price-chart"></div>
+
+<!-- embed the current price in USD (can be used in multiple locations) -->
+<div class="price-per-usd"></div>
+
+<!-- embed the current price in XTZ (can be used in multiple locations) -->
+<div class="price-per-tez"></div>
+```
+
 
 ## Development
 
