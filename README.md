@@ -24,6 +24,9 @@ There are differente elements you can display on your site:
 
 <!-- embed the current price in XTZ (can be used in multiple locations) -->
 <div class="price-per-tez"></div>
+
+<!-- embed the token price change in the last 24 hours (can be used in multiple locations) -->
+<div class="price-change-24h"></div>
 ```
 
 

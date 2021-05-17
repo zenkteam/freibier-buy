@@ -21,7 +21,7 @@ const PriceChart = () => {
   useEffect(() => {
     // load history
     const smart_contract = config.swapContractAddress;
-    const limit = 700; // max
+    const limit = 700; // max: 1000
     fetch(`https://api.tzkt.io/v1/contracts/${smart_contract}/storage/history?limit=${limit}`)
       .then(res => res.json())
       .then(data => process_pool_data(data, 8))

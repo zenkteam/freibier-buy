@@ -30,6 +30,7 @@ const ExchangeForm = ({ contract, setUserBalance, Tezos, userAddress, setStorage
 
   const [tezUsd, setTezUsd] = useState<CoinGeckoPrice>(config.defaultTezPrice);
   const [tokenUsd, setTokenUsd] = useState<CoinGeckoPrice>(config.defaultTokenPrice);
+  const [tokenTezPriceYesterday, setTokenTezPriceYesterday] = useState<number>(0);
   const [tezPool, setTezPool] = useState<number>(0);
   const [tokenPool, setTokenPool] = useState<number>(0);
 
@@ -56,6 +57,41 @@ const ExchangeForm = ({ contract, setUserBalance, Tezos, userAddress, setStorage
     }
   }, [storage])
 
+  // tez price
+  useEffect(() => {
+    const timestamp = new Date();
+    timestamp.setDate(timestamp.getDate() - 1);
+    const timestampString = timestamp.toISOString();
+    const limit = 700; // max: 1000
+    fetch(`https://api.tzkt.io/v1/contracts/${config.swapContractAddress}/storage/history?limit=${limit}`)
+      .then(res => res.json())
+      .then(data => data.find((item: any) => item.timestamp < timestampString))
+      .then(item => {
+        const tez_pool = parseFloat(item.value.storage.tez_pool) / tezMultiplyer;
+        const token_pool = parseFloat(item.value.storage.token_pool) / tokenMultiplyer;
+        const price_yesterday = tez_pool / token_pool;
+        setTokenTezPriceYesterday(price_yesterday);
+      })
+  }, [])
+
+  // set 24 hours change for token price
+  useEffect(() => {
+    if (tokenTezPriceYesterday) {
+      const tokenUsdNew = tokenUsd;
+      tokenUsdNew.usd_24h_change = (tokenUsdNew.usd / (tokenTezPriceYesterday * tezUsd.usd) - 1) * 100;
+      setTokenUsd(tokenUsdNew);
+
+      // update other UIs
+      const priceChangeNode = document.getElementsByClassName("price-change-24h");
+      if (priceChangeNode.length) {
+        const content = (tokenUsdNew.usd_24h_change).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + '%';
+        for (const tag of priceChangeNode) {
+          tag.innerHTML = content;
+        }
+      }
+    }
+  }, [tokenUsd, tokenUsd.usd, tokenTezPriceYesterday, tezUsd.usd])
+  
   //
   useEffect(() => {
     if (tezPool && tokenPool) {
@@ -284,14 +320,17 @@ const ExchangeForm = ({ contract, setUserBalance, Tezos, userAddress, setStorage
                 </div>
                 <div className="small-text crypto-price">
                   ~${tokenUsd.usd.toLocaleString(undefined, { minimumFractionDigits: 5, maximumFractionDigits: 5 })}
-                  {/* deactivated while we don't have live updates */}
-                  {/* &nbsp;
-                  {tokenUsd.usd_24h_change < 0 &&
-                    <span className="inline-badge-medium red">↓ {tokenUsd.usd_24h_change.toLocaleString(undefined, { maximumFractionDigits: 2 })}%</span>
+                  { tezUsd.usd_24h_change !== 0 && (tokenUsd.usd_24h_change > 0 || tokenUsd.usd_24h_change > tezUsd.usd_24h_change) &&
+                    <>
+                    &nbsp;
+                    {tokenUsd.usd_24h_change < 0 &&
+                      <span className="inline-badge-medium red">↓ {tokenUsd.usd_24h_change.toLocaleString(undefined, { maximumFractionDigits: 2 })}%</span>
+                    }
+                    {tokenUsd.usd_24h_change > 0 &&
+                      <span className="inline-badge-medium green">↑ {tokenUsd.usd_24h_change.toLocaleString(undefined, { maximumFractionDigits: 2 })}%</span>
+                    }
+                    </>
                   }
-                  {tokenUsd.usd_24h_change > 0 &&
-                    <span className="inline-badge-medium green">↑ {tokenUsd.usd_24h_change.toLocaleString(undefined, { maximumFractionDigits: 2 })}%</span>
-                  } */}
                 </div>
               </div>
             </div>
