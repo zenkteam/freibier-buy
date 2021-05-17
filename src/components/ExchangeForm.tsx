@@ -1,6 +1,7 @@
 import React, { useState, Dispatch, SetStateAction, useEffect } from "react";
 import { TezosToolkit, WalletContract } from "@taquito/taquito";
 import config from "./../config";
+import Tracker from '../tracker';
 
 interface ExchangeFormProps {
   contract: WalletContract | any;
@@ -138,6 +139,10 @@ const ExchangeForm = ({ contract, setUserBalance, Tezos, userAddress, setStorage
   // trigger buy
   const buy = async (): Promise<void> => {
     setLoadingBuy(true);
+    Tracker.trackEvent('swap_start', {
+      'XTZ': amountTez,
+      'CVZA': amountToken,
+    });
     try {
       const minToken = Math.round(amountToken * tokenMultiplyer * (1 - maxSlippage));
       const op = await contract.methods.tezToTokenPayment(minToken, userAddress).send({
@@ -149,6 +154,10 @@ const ExchangeForm = ({ contract, setUserBalance, Tezos, userAddress, setStorage
       const newStorage: any = await contract.storage();
       if (newStorage) setStorage(newStorage);
       setUserBalance(await Tezos.tz.getBalance(userAddress));
+      Tracker.trackEvent('swap_success', {
+        'XTZ': amountTez,
+        'CVZA': minToken,
+      });
     } catch (error) {
       console.log(error);
     } finally {

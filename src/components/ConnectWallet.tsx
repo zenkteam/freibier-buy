@@ -5,6 +5,7 @@ import { BeaconEvent, defaultEventCallbacks } from "@airgap/beacon-sdk";
 import TransportU2F from "@ledgerhq/hw-transport-u2f";
 import { LedgerSigner } from "@taquito/ledger-signer";
 import config from '../config';
+import Tracker from '../tracker';
 
 type ButtonProps = {
   Tezos: TezosToolkit;
@@ -36,8 +37,9 @@ const ConnectButton = ({
   };
 
   const connectWallet = async (): Promise<void> => {
-    setLoadingWallet(true);
     try {
+      setLoadingWallet(true);
+      Tracker.trackEvent('connect_start', { type: 'wallet'});
       await wallet.requestPermissions({
         network: {
           type: config.network,
@@ -48,6 +50,7 @@ const ConnectButton = ({
       const userAddress = await wallet.getPKH();
       await setup(userAddress);
       setBeaconConnection(true);
+      Tracker.trackEvent('connect_success', { type: 'wallet'});
     } catch (error) {
       console.log(error);
       setLoadingWallet(false);
@@ -57,6 +60,7 @@ const ConnectButton = ({
   const connectNano = async (): Promise<void> => {
     try {
       setLoadingNano(true);
+      Tracker.trackEvent('connect_start', { type: 'nano'});
       const transport = await TransportU2F.create();
       const ledgerSigner = new LedgerSigner(transport, "44'/1729'/0'/0'", true);
 
@@ -65,6 +69,7 @@ const ConnectButton = ({
       //Get the public key and the public key hash from the Ledger
       const userAddress = await Tezos.signer.publicKeyHash();
       await setup(userAddress);
+      Tracker.trackEvent('connect_success', { type: 'nano'});
     } catch (error) {
       console.log("Error!", error);
       setLoadingNano(false);
