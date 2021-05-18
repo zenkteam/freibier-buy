@@ -36,7 +36,7 @@ const DisconnectButton = ({
   };
 
   return (
-    <button className="button long-submit-button w-button" id="w-node-cac1c974-81c3-bb3d-28aa-2c88c2fd1725-856d06c6" onClick={disconnectWallet}>
+    <button className="button long-submit-button w-button secondary" id="w-node-cac1c974-81c3-bb3d-28aa-2c88c2fd1725-856d06c6" onClick={disconnectWallet}>
       Disconnect wallet
     </button>
   );

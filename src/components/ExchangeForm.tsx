@@ -212,7 +212,7 @@ const ExchangeForm = ({ contract, updateUserBalance, updateUserTokenBalance, Tez
 
   return (
         <>
-          <div className="div-block-11">
+          <div id="w-node-_15a9de31-66d8-0b4b-3b7b-19a314a9d93b-856d06c6" className="div-block-11">
 
             {!useDollar &&
               <>
@@ -239,7 +239,7 @@ const ExchangeForm = ({ contract, updateUserBalance, updateUserTokenBalance, Tez
             }
             {useDollar &&
               <>
-                <span style={{position: 'absolute', left: 18, top: 3, color: '#141414'}}>$</span>
+                <span className="dollar-sign" style={{position: 'absolute', left: 18, top: 10, color: '#141414'}}>$</span>
                 <input
                   type="number"
                   className="form-input form-input-large currency w-input"
@@ -290,10 +290,12 @@ const ExchangeForm = ({ contract, updateUserBalance, updateUserTokenBalance, Tez
                   }
                 </div>
               </div>
-              <div onClick={() => setMaxTez()} style={{background: '#ebebec', color: 'rgba(20,20,20,.5)', borderRadius: 4, padding: '6px 6px 4px 6px', marginLeft: 'auto', fontSize: 10, lineHeight: 1, cursor: 'pointer'}}>MAX</div>
+              { userBalance > 0 &&
+                <div onClick={() => setMaxTez()} style={{background: '#ebebec', color: 'rgba(20,20,20,.5)', borderRadius: 4, padding: '6px 6px 4px 6px', marginLeft: 'auto', fontSize: 10, lineHeight: 1, cursor: 'pointer'}}>MAX</div>
+              }
             </div>
           </div>
-          <div className="div-block-11">
+          <div id="w-node-dfb2f49c-1a5d-d200-b5d5-9b7a746613e7-856d06c6" className="div-block-11">
             <input
               type="number"
               className="form-input form-input-large currency w-input"
