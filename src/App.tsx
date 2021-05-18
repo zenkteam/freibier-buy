@@ -118,6 +118,7 @@ const App = () => {
                   updateUserTokenBalance={updateTokenBalance}
                   Tezos={Tezos}
                   userAddress={userAddress}
+                  userBalance={userBalance}
                   setStorage={setStorage}
                   storage={storage}
                 />

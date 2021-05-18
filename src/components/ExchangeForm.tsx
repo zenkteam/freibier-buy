@@ -10,6 +10,7 @@ interface ExchangeFormProps {
   updateUserTokenBalance: Function;
   Tezos: TezosToolkit;
   userAddress: string;
+  userBalance: number;
   setStorage: Dispatch<SetStateAction<number>>;
   storage: any;
 }
@@ -28,7 +29,7 @@ const tezMultiplyer = 10 ** 6;
 const tokenMultiplyer = 10 ** 8;
 const displayPositions = 2;
 
-const ExchangeForm = ({ contract, updateUserBalance, updateUserTokenBalance, Tezos, userAddress, setStorage, storage }: ExchangeFormProps) => {
+const ExchangeForm = ({ contract, updateUserBalance, updateUserTokenBalance, Tezos, userAddress, userBalance, setStorage, storage }: ExchangeFormProps) => {
 
   const [tezUsd, setTezUsd] = useState<CoinGeckoPrice>(config.defaultTezPrice);
   const [tokenUsd, setTokenUsd] = useState<CoinGeckoPrice>(config.defaultTokenPrice);
@@ -109,6 +110,9 @@ const ExchangeForm = ({ contract, updateUserBalance, updateUserTokenBalance, Tez
   // handle user changes
   function round(value: number, amount: number) {
     return Math.round(value * 10 ** amount) / 10 ** amount;
+  }
+  function setMaxTez() {
+    userChangeTez(userBalance);
   }
   function onChangeTez(event: any) { // ChangeEvent<HTMLInputElement>
     userChangeTez(Math.abs(parseFloat(event.target.value)) || 0)
@@ -193,6 +197,10 @@ const ExchangeForm = ({ contract, updateUserBalance, updateUserTokenBalance, Tez
 
     if (!tezPool) {
       return <button id="w-node-cac1c974-81c3-bb3d-28aa-2c88c2fd1725-856d06c6" className="button long-submit-button w-button">Loading exchange rate</button>;
+    }
+
+    if (amountTez > userBalance) {
+      return <input type="submit" value="Not enough funds" id="w-node-cac1c974-81c3-bb3d-28aa-2c88c2fd1725-856d06c6" className="button long-submit-button bg-primary-4 w-button" disabled style={{backgroundColor: '#ebebec'}} />;
     }
 
     if (!amountTez || !amountToken) {
@@ -282,6 +290,7 @@ const ExchangeForm = ({ contract, updateUserBalance, updateUserTokenBalance, Tez
                   }
                 </div>
               </div>
+              <div onClick={() => setMaxTez()} style={{background: '#ebebec', color: 'rgba(20,20,20,.5)', borderRadius: 4, padding: '6px 6px 4px 6px', marginLeft: 'auto', fontSize: 10, lineHeight: 1, cursor: 'pointer'}}>MAX</div>
             </div>
           </div>
           <div className="div-block-11">
