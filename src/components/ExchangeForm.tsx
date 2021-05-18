@@ -131,7 +131,7 @@ const ExchangeForm = ({ contract, setUserBalance, Tezos, userAddress, setStorage
     return Math.round(value * 10 ** amount) / 10 ** amount;
   }
   function onChangeTez(event: any) { // ChangeEvent<HTMLInputElement>
-    userChangeTez(parseFloat(event.target.value) || 0)
+    userChangeTez(Math.abs(parseFloat(event.target.value)) || 0)
   }
   function userChangeTez(amount_tez: number) {
     // b = 0.997 * a * y/(x + 0.997 * a)
@@ -143,7 +143,7 @@ const ExchangeForm = ({ contract, setUserBalance, Tezos, userAddress, setStorage
     setAmountTokenDollar(amount_token * tokenUsd.usd);
   }
   function onChangeTezDollar(event: any) {
-    userChangeTezDollar(parseFloat(event.target.value) || 0)
+    userChangeTezDollar(Math.abs(parseFloat(event.target.value)) || 0)
   }
   function userChangeTezDollar(amount_tez_dollar: number) {
     amount_tez_dollar = round(amount_tez_dollar, displayPositions);
@@ -158,7 +158,7 @@ const ExchangeForm = ({ contract, setUserBalance, Tezos, userAddress, setStorage
     setAmountTokenDollar(amount_token * tokenUsd.usd);
   }
   function onChangeToken(event: any) { // ChangeEvent<HTMLInputElement>
-    userChangeToken(parseFloat(event.target.value) || 0)
+    userChangeToken(Math.abs(parseFloat(event.target.value)) || 0)
   }
   function userChangeToken(amount_token: number) {
     // b = 1.003 * a * y/(x - 1.003 * a)
@@ -240,12 +240,17 @@ const ExchangeForm = ({ contract, setUserBalance, Tezos, userAddress, setStorage
                   onChange={(e) => onChangeTez(e)}
                   required
                 />
-                <div className="text-currency">~${amountTezDollar.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
+                <div
+                  className="text-currency"
+                  style={{'overflow': 'hidden', 'textOverflow': 'ellipsis', 'width': 168}}
+                >
+                  ~${amountTezDollar.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                </div>
               </>
             }
             {useDollar &&
               <>
-                <span style={{position: 'absolute', left: 18, top: 10, color: '#141414'}}>$</span>
+                <span style={{position: 'absolute', left: 18, top: 3, color: '#141414'}}>$</span>
                 <input
                   type="number"
                   className="form-input form-input-large currency w-input"
@@ -259,7 +264,12 @@ const ExchangeForm = ({ contract, setUserBalance, Tezos, userAddress, setStorage
                   onChange={(e) => onChangeTezDollar(e)}
                   required
                 />
-                <div className="text-currency">~{amountTez.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ꜩ</div>
+                <div
+                  className="text-currency"
+                  style={{'overflow': 'hidden', 'textOverflow': 'ellipsis', 'width': 168}}
+                >
+                  ~{amountTez.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ꜩ
+                </div>
               </>
             }
 
@@ -307,7 +317,12 @@ const ExchangeForm = ({ contract, setUserBalance, Tezos, userAddress, setStorage
               onChange={(e) => onChangeToken(e)}
               required
             />
-            <div className="text-currency">~${amountTokenDollar.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
+            <div
+              className="text-currency"
+              style={{'overflow': 'hidden', 'textOverflow': 'ellipsis', 'width': 216}}
+            >
+              ~${amountTokenDollar.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+            </div>
           </div>
           <div id="w-node-_15a9de31-66d8-0b4b-3b7b-19a314a9d949-856d06c6" className="div-block-8">
             <div className="div-block-9">
