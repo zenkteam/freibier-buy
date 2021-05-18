@@ -76,6 +76,13 @@ const App = () => {
       Publish.userBalance(userBalance);
     }
   }, [userBalance])
+  useEffect(() => {
+    const interval = setInterval(() => {
+      updateBalance()
+      updateTokenBalance()
+    }, 10000);
+    return () => clearInterval(interval);
+  }, [updateBalance, updateTokenBalance]);
 
   const generateQrCode = (): { __html: string } => {
     const qr = qrcode(0, "L");
@@ -107,7 +114,8 @@ const App = () => {
               <div className="w-layout-grid grid-4">
                 <ExchangeForm
                   contract={contract}
-                  setUserBalance={setUserBalance}
+                  updateUserBalance={updateBalance}
+                  updateUserTokenBalance={updateTokenBalance}
                   Tezos={Tezos}
                   userAddress={userAddress}
                   setStorage={setStorage}
@@ -120,7 +128,6 @@ const App = () => {
                     setPublicToken={setPublicToken}
                     setWallet={setWallet}
                     setUserAddress={setUserAddress}
-                    setUserBalance={setUserBalance}
                     setBeaconConnection={setBeaconConnection}
                     wallet={wallet}
                   />
@@ -132,7 +139,6 @@ const App = () => {
                     wallet={wallet}
                     setPublicToken={setPublicToken}
                     setUserAddress={setUserAddress}
-                    setUserBalance={setUserBalance}
                     setWallet={setWallet}
                     setTezos={setTezos}
                     setBeaconConnection={setBeaconConnection}

@@ -11,7 +11,6 @@ type ButtonProps = {
   Tezos: TezosToolkit;
   setWallet: Dispatch<SetStateAction<any>>;
   setUserAddress: Dispatch<SetStateAction<string>>;
-  setUserBalance: Dispatch<SetStateAction<number>>;
   setBeaconConnection: Dispatch<SetStateAction<boolean>>;
   setPublicToken: Dispatch<SetStateAction<string | null>>;
   wallet: BeaconWallet;
@@ -21,7 +20,6 @@ const ConnectButton = ({
   Tezos,
   setWallet,
   setUserAddress,
-  setUserBalance,
   setBeaconConnection,
   setPublicToken,
   wallet

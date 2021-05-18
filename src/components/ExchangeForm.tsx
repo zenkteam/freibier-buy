@@ -6,7 +6,8 @@ import Publish from "../publish";
 
 interface ExchangeFormProps {
   contract: WalletContract | any;
-  setUserBalance: Dispatch<SetStateAction<any>>;
+  updateUserBalance: Function;
+  updateUserTokenBalance: Function;
   Tezos: TezosToolkit;
   userAddress: string;
   setStorage: Dispatch<SetStateAction<number>>;
@@ -27,7 +28,7 @@ const tezMultiplyer = 10 ** 6;
 const tokenMultiplyer = 10 ** 8;
 const displayPositions = 2;
 
-const ExchangeForm = ({ contract, setUserBalance, Tezos, userAddress, setStorage, storage }: ExchangeFormProps) => {
+const ExchangeForm = ({ contract, updateUserBalance, updateUserTokenBalance, Tezos, userAddress, setStorage, storage }: ExchangeFormProps) => {
 
   const [tezUsd, setTezUsd] = useState<CoinGeckoPrice>(config.defaultTezPrice);
   const [tokenUsd, setTokenUsd] = useState<CoinGeckoPrice>(config.defaultTokenPrice);
@@ -168,7 +169,8 @@ const ExchangeForm = ({ contract, setUserBalance, Tezos, userAddress, setStorage
       await op.confirmation();
       const newStorage: any = await contract.storage();
       if (newStorage) setStorage(newStorage);
-      setUserBalance(await Tezos.tz.getBalance(userAddress));
+      updateUserBalance();
+      updateUserTokenBalance();
       Tracker.trackEvent('swap_success', {
         'XTZ': amountTez,
         'CVZA': minToken,
