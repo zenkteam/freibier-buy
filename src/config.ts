@@ -4,6 +4,7 @@ const config = {
   network: NetworkType.MAINNET,
   rpcUrl: "https://rpc.tzbeta.net",
   swapContractAddress: "KT1F3BqwEAoa2koYX4Hz7zJ8xfGSxxAGVT8t",
+  coinContractAddress: "KT1BCzAq3PrTKPsEBKuoTGZdwX6rN6WE8rJj",
   defaultTezPrice: {
     last_updated_at: 1621264908,
     usd: 5.24,

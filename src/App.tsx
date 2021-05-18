@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useCallback, useState } from "react";
 import { TezosToolkit } from "@taquito/taquito";
 // import "./App.css";
 import ConnectButton from "./components/ConnectWallet";
@@ -6,6 +6,7 @@ import DisconnectButton from "./components/DisconnectWallet";
 import qrcode from "qrcode-generator";
 import ExchangeForm from './components/ExchangeForm';
 import config from './config';
+import Publish from './publish';
 
 const App = () => {
   const [Tezos, setTezos] = useState<TezosToolkit>(
@@ -15,7 +16,8 @@ const App = () => {
   const [publicToken, setPublicToken] = useState<string | null>("");
   const [wallet, setWallet] = useState<any>(null);
   const [userAddress, setUserAddress] = useState<string>("");
-  const [userBalance, setUserBalance] = useState<number>(0);
+  const [userBalance, setUserBalance] = useState<number>(-1);
+  const [userTokenBalance, setUserTokenBalance] = useState<number>(-1);
   const [storage, setStorage] = useState<any>();
   const [copiedPublicToken, setCopiedPublicToken] = useState<boolean>(false);
   const [beaconConnection, setBeaconConnection] = useState<boolean>(false);
@@ -30,6 +32,47 @@ const App = () => {
     }
     initContract()
   }, [Tezos.wallet])
+
+  // update balances
+  const updateTokenBalance = useCallback(() => {
+    if (userAddress) {
+      const url = `https://api.better-call.dev/v1/account/${config.network}/${userAddress}/token_balances`
+      fetch(url)
+        .then(res => res.json())
+        .then(data => data.balances.find((coin: any) => coin.contract === config.coinContractAddress))
+        .then(coin => {
+          if (coin) {
+            setUserTokenBalance(parseInt(coin.balance) / 10**coin.decimals);
+          } else {
+            setUserTokenBalance(0);
+          }
+        })
+    } else {
+      setUserTokenBalance(-1);
+    }
+  }, [setUserTokenBalance, userAddress])
+  const updateBalance = useCallback(async () => {
+    if (userAddress) {
+      const balance = await Tezos.tz.getBalance(userAddress);
+      setUserBalance(balance.toNumber() / 10**6);
+    } else {
+      setUserBalance(-1);
+    }
+  }, [setUserBalance, userAddress, Tezos.tz])
+  useEffect(() => {
+    updateBalance()
+    updateTokenBalance()
+  }, [userAddress, updateTokenBalance, updateBalance])
+  useEffect(() => {
+    if (userTokenBalance !== -1) {
+      Publish.userTokenBalance(userTokenBalance);
+    }
+  }, [userTokenBalance])
+  useEffect(() => {
+    if (userBalance !== -1) {
+      Publish.userBalance(userBalance);
+    }
+  }, [userBalance])
 
   const generateQrCode = (): { __html: string } => {
     const qr = qrcode(0, "L");

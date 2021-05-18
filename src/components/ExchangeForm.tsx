@@ -1,7 +1,8 @@
 import React, { useState, Dispatch, SetStateAction, useEffect } from "react";
 import { TezosToolkit, WalletContract } from "@taquito/taquito";
 import config from "./../config";
-import Tracker from '../tracker';
+import Tracker from "../tracker";
+import Publish from "../publish";
 
 interface ExchangeFormProps {
   contract: WalletContract | any;
@@ -80,40 +81,18 @@ const ExchangeForm = ({ contract, setUserBalance, Tezos, userAddress, setStorage
       const tokenUsdNew = tokenUsd;
       tokenUsdNew.usd_24h_change = (tokenUsdNew.usd / (tokenTezPriceYesterday * tezUsd.usd) - 1) * 100;
       setTokenUsd(tokenUsdNew);
-
-      // update other UIs
-      const priceChangeNode = document.getElementsByClassName("price-change-24h");
-      if (priceChangeNode.length) {
-        const content = (tokenUsdNew.usd_24h_change).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + '%';
-        for (const tag of priceChangeNode) {
-          tag.innerHTML = content;
-        }
-      }
+      Publish.tokenPriceChange(tokenUsdNew.usd_24h_change);
     }
   }, [tokenUsd, tokenUsd.usd, tokenTezPriceYesterday, tezUsd.usd])
   
-  //
+  // token price update
   useEffect(() => {
     if (tezPool && tokenPool) {
       const tokenUsdNew = tokenUsd;
-      tokenUsdNew.usd = tezPool / tokenPool * tezUsd.usd
-      setTokenUsd(tokenUsdNew)
-
-      // update other UIs
-      const pricePerTezNode = document.getElementsByClassName("price-per-tez");
-      if (pricePerTezNode.length) {
-        const content = (tezPool / tokenPool).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 6 }) + ' ꜩ';
-        for (const tag of pricePerTezNode) {
-          tag.innerHTML = content;
-        }
-      }
-      const pricePerUsdNode = document.getElementsByClassName("price-per-usd");
-      if (pricePerUsdNode.length) {
-        const content = '$' + (tokenUsdNew.usd).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 5 });
-        for (const tag of pricePerUsdNode) {
-          tag.innerHTML = content;
-        }
-      }
+      tokenUsdNew.usd = tezPool / tokenPool * tezUsd.usd;
+      setTokenUsd(tokenUsdNew);
+      Publish.pricePerTez(tezPool / tokenPool);
+      Publish.pricePerUsd(tokenUsdNew.usd);
     }
   }, [tezPool, tokenPool, tezUsd, tokenUsd])
 

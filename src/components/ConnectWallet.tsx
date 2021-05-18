@@ -31,9 +31,6 @@ const ConnectButton = ({
 
   const setup = async (userAddress: string): Promise<void> => {
     setUserAddress(userAddress);
-    // updates balance
-    const balance = await Tezos.tz.getBalance(userAddress);
-    setUserBalance(balance.toNumber());
   };
 
   const connectWallet = async (): Promise<void> => {
