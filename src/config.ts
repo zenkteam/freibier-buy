@@ -18,7 +18,8 @@ const config = {
     usd_24h_change: 0,
     usd_24h_vol: 0,
     usd_market_cap: 0,
-  }
+  },
+  tokenSupply: 1000000000
 }
 
 export default config;

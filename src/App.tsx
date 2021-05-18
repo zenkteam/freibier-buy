@@ -7,6 +7,7 @@ import qrcode from "qrcode-generator";
 import ExchangeForm from './components/ExchangeForm';
 import config from './config';
 import Publish from './publish';
+import PriceChart from './PriceChart';
 
 const App = () => {
   const [Tezos, setTezos] = useState<TezosToolkit>(
@@ -21,6 +22,8 @@ const App = () => {
   const [storage, setStorage] = useState<any>();
   const [copiedPublicToken, setCopiedPublicToken] = useState<boolean>(false);
   const [beaconConnection, setBeaconConnection] = useState<boolean>(false);
+  const [showTokenomics, setShowTokenomics] = useState<boolean>(false);
+  const [showDisclaimer, setShowDisclaimer] = useState<boolean>(false);
 
   // creates contract instance
   useEffect(() => {
@@ -86,6 +89,19 @@ const App = () => {
     <div className="card bg-primary-1">
       <div className="card-body">
         <div className="form-block content-width-large align-center w-form">
+          <div className="space-bottom">
+            <h3 className="heading no-space-bottom">Buy $CVZA</h3>
+            { userTokenBalance === -1 &&
+              <div id="current-CVZA" className="large-text">
+                Connect your wallet to see your balance and trade
+              </div>
+            }
+            { userTokenBalance !== -1 &&
+              <div id="current-CVZA" className="large-text">
+                Your are currently holding <span className="inline-badge">{userTokenBalance.toLocaleString(undefined, { maximumFractionDigits: 0 })}</span> $CVZA
+              </div>
+            }
+          </div>
           <div className="form-grid-vertical">
             <div className="form-row form-row-last">
               <div className="w-layout-grid grid-4">
@@ -122,7 +138,74 @@ const App = () => {
                     setBeaconConnection={setBeaconConnection}
                   />
                 }
-              </div>
+                </div>
+
+                <div>
+                  <div className="accordion-group exception-buycvza">
+                    <div className="accordion-title-panel exception-buycerveza" onClick={() => setShowTokenomics(!showTokenomics)}>
+                      <h5 className="small-text">Tokenomics</h5>
+                      <img 
+                        alt=""
+                        className="accordion-arrow"
+                        src="https://uploads-ssl.webflow.com/6091079111aa5aff3f19582d/6091079111aa5ad8b31958a5_icon-chevron-right.svg"
+                        style={{transform: showTokenomics ? 'rotateZ(90deg)' : 'rotateZ(0deg)', transformStyle: 'preserve-3d', transition: 'transform 200ms'}}
+                      />
+                    </div>
+                    <div className="accordion-content" style={{display: showTokenomics ? 'block' : 'none', opacity: 1}}>
+                      <div>
+                        <div>
+                          <div className="grid-halves full-width">
+                            <div id="w-node-_2bc1ab25-9a15-d706-5153-310495f51bfc-856d06c6">Contract</div>
+                            <div className="tiny-text">{config.coinContractAddress}</div>
+                          </div>
+                          <div className="grid-halves full-width">
+                            <div id="w-node-_2bc1ab25-9a15-d706-5153-310495f51c01-856d06c6">DEX LP Contract</div>
+                            <div className="tiny-text">{config.swapContractAddress}</div>
+                          </div>
+                          <div className="grid-halves full-width">
+                            <div id="w-node-_2bc1ab25-9a15-d706-5153-310495f51c06-856d06c6">Total Supply</div>
+                            <div className="small-text">{config.tokenSupply.toLocaleString()}</div>
+                          </div>
+                          <div className="grid-halves full-width">
+                            <div id="w-node-_2bc1ab25-9a15-d706-5153-310495f51c0b-856d06c6">Price per USD</div>
+                            <div className="price-per-usd"></div>
+                          </div>
+                          <div className="grid-halves full-width">
+                            <div id="w-node-_2bc1ab25-9a15-d706-5153-310495f51c10-856d06c6">Price per Tezos</div>
+                            <div className="price-per-tez"></div>
+                          </div>
+                          <div className="grid-halves full-width space-bottom">
+                            <div id="w-node-_2bc1ab25-9a15-d706-5153-310495f51c15-856d06c6">Price Change 24h</div>
+                            <div className="price-change-24h"></div>
+                          </div>
+                        </div>
+                        <div className="graph-wrapper">
+                          <div className="graph-svg">
+                            <PriceChart/>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="accordion-group exception-buycvza">
+                    <div className="accordion-title-panel exception-buycerveza" onClick={() => setShowDisclaimer(!showDisclaimer)}>
+                      <h5 className="small-text">Disclaimer</h5>
+                      <img
+                        alt=""
+                        className="accordion-arrow"
+                        src="https://uploads-ssl.webflow.com/6091079111aa5aff3f19582d/6091079111aa5ad8b31958a5_icon-chevron-right.svg"  
+                        style={{transform: showDisclaimer ? 'rotateZ(90deg)' : 'rotateZ(0deg)', transformStyle: 'preserve-3d', transition: 'transform 200ms'}}
+                      />
+                    </div>
+                    <div className="accordion-content" style={{display: showDisclaimer ? 'block' : 'none', opacity: 1}}>
+                      <div><p>
+                        The rates displayed by the calculator represent market exchange rates, and are provided for informational and estimation purposes only. They do not include any conversion fees or other charges applicable to a conversion or other transaction. The calculator is based on a third party service, and Company Freibier.io and its affiliates accept no responsibility for the contents or results of any calculations made using the calculator.
+                        <br />
+                      </p></div>
+                    </div>
+                  </div>
+                </div>
+              
             </div>
           </div>
 
