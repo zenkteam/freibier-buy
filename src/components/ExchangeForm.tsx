@@ -6,6 +6,7 @@ import Publish from "../publish";
 
 interface ExchangeFormProps {
   contract: WalletContract | any;
+  tokenDetails: any;
   updateUserBalance: Function;
   updateUserTokenBalance: Function;
   Tezos: TezosToolkit;
@@ -25,11 +26,9 @@ interface CoinGeckoPrice {
 
 const fee = 0.003;
 const maxSlippage = 0.005;
-const tezMultiplyer = 10 ** 6;
-const tokenMultiplyer = 10 ** 8;
 const displayPositions = 2;
 
-const ExchangeForm = ({ contract, updateUserBalance, updateUserTokenBalance, Tezos, userAddress, userBalance, setStorage, storage }: ExchangeFormProps) => {
+const ExchangeForm = ({ contract, tokenDetails, updateUserBalance, updateUserTokenBalance, Tezos, userAddress, userBalance, setStorage, storage }: ExchangeFormProps) => {
 
   const [tezUsd, setTezUsd] = useState<CoinGeckoPrice>(config.defaultTezPrice);
   const [tokenUsd, setTokenUsd] = useState<CoinGeckoPrice>(config.defaultTokenPrice);
@@ -45,6 +44,9 @@ const ExchangeForm = ({ contract, updateUserBalance, updateUserTokenBalance, Tez
   const [loadingBuy, setLoadingBuy] = useState<boolean>(false);
   const [useDollar, setUseDollar] = useState<boolean>(false);
 
+  const tezMultiplyer = 10 ** 6;
+  const tokenMultiplyer = 10 ** (tokenDetails?.decimals || 6);
+
   // https://www.coingecko.com/en/api#explore-api
   useEffect(() => {
     fetch("https://api.coingecko.com/api/v3/simple/price?ids=tezos&vs_currencies=usd&include_market_cap=true&include_24hr_vol=true&include_24hr_change=true&include_last_updated_at=true")
@@ -58,24 +60,28 @@ const ExchangeForm = ({ contract, updateUserBalance, updateUserTokenBalance, Tez
       setTezPool(storage.storage.tez_pool.toNumber() / tezMultiplyer);
       setTokenPool(storage.storage.token_pool.toNumber() / tokenMultiplyer);
     }
-  }, [storage])
+  }, [storage, tezMultiplyer, tokenMultiplyer])
 
   // tez price
   useEffect(() => {
-    const timestamp = new Date();
-    timestamp.setDate(timestamp.getDate() - 1);
-    const timestampString = timestamp.toISOString();
-    const limit = 700; // max: 1000
-    fetch(`https://api.tzkt.io/v1/contracts/${config.swapContractAddress}/storage/history?limit=${limit}`)
-      .then(res => res.json())
-      .then(data => data.find((item: any) => item.timestamp < timestampString))
-      .then(item => {
-        const tez_pool = parseFloat(item.value.storage.tez_pool) / tezMultiplyer;
-        const token_pool = parseFloat(item.value.storage.token_pool) / tokenMultiplyer;
-        const price_yesterday = tez_pool / token_pool;
-        setTokenTezPriceYesterday(price_yesterday);
-      })
-  }, [])
+    if (tokenDetails) {
+      const timestamp = new Date();
+      timestamp.setDate(timestamp.getDate() - 1);
+      const timestampString = timestamp.toISOString();
+      const limit = 700; // max: 1000
+      fetch(`https://api.tzkt.io/v1/contracts/${tokenDetails.swapContractAddress}/storage/history?limit=${limit}`)
+        .then(res => res.json())
+        .then(data => data.find((item: any) => item.timestamp < timestampString))
+        .then(item => {
+          if (item && item.value) {
+            const tez_pool = parseFloat(item.value.storage.tez_pool) / tezMultiplyer;
+            const token_pool = parseFloat(item.value.storage.token_pool) / tokenMultiplyer;
+            const price_yesterday = tez_pool / token_pool;
+            setTokenTezPriceYesterday(price_yesterday);
+          }
+        })
+    }
+  }, [tokenDetails, tezMultiplyer, tokenMultiplyer])
 
   // set 24 hours change for token price
   useEffect(() => {
@@ -161,7 +167,7 @@ const ExchangeForm = ({ contract, updateUserBalance, updateUserTokenBalance, Tez
     setLoadingBuy(true);
     Tracker.trackEvent('swap_start', {
       'XTZ': amountTez,
-      'CVZA': amountToken,
+      [tokenDetails.symbol]: amountToken,
     });
     try {
       const minToken = Math.round(amountToken * tokenMultiplyer * (1 - maxSlippage));
@@ -177,7 +183,7 @@ const ExchangeForm = ({ contract, updateUserBalance, updateUserTokenBalance, Tez
       updateUserTokenBalance();
       Tracker.trackEvent('swap_success', {
         'XTZ': amountTez,
-        'CVZA': minToken,
+        [tokenDetails.symbol]: minToken,
       });
     } catch (error) {
       console.log(error);
@@ -204,10 +210,10 @@ const ExchangeForm = ({ contract, updateUserBalance, updateUserTokenBalance, Tez
     }
 
     if (!amountTez || !amountToken) {
-      return <input type="submit" value="Buy CVZA" id="w-node-cac1c974-81c3-bb3d-28aa-2c88c2fd1725-856d06c6" className="button long-submit-button bg-primary-4 w-button" disabled style={{backgroundColor: '#ebebec'}} />;
+      return <input type="submit" value={'Buy ' + tokenDetails?.symbol} id="w-node-cac1c974-81c3-bb3d-28aa-2c88c2fd1725-856d06c6" className="button long-submit-button bg-primary-4 w-button" disabled style={{backgroundColor: '#ebebec'}} />;
     }
 
-    return <input type="submit" value="Buy CVZA" onClick={buy} id="w-node-cac1c974-81c3-bb3d-28aa-2c88c2fd1725-856d06c6" className="button long-submit-button bg-primary-4 w-button" />;
+    return <input type="submit" value={'Buy ' + tokenDetails?.symbol} onClick={buy} id="w-node-cac1c974-81c3-bb3d-28aa-2c88c2fd1725-856d06c6" className="button long-submit-button bg-primary-4 w-button" />;
   }
 
   return (
@@ -319,11 +325,11 @@ const ExchangeForm = ({ contract, updateUserBalance, updateUserTokenBalance, Tez
           <div id="w-node-_15a9de31-66d8-0b4b-3b7b-19a314a9d949-856d06c6" className="div-block-8">
             <div className="div-block-9">
               <div className="div-block-10">
-                <img loading="lazy" alt="" className="token-img" src="https://uploads-ssl.webflow.com/6091079111aa5aff3f19582d/6092c567e1dfe71a28c3c339_1_ZdaWerzN9F7oIyhZEwcRqQ.jpeg" />
+                <img loading="lazy" alt="" className="token-img" src={tokenDetails?.thumbnailUri} />
               </div>
               <div>
                 <div className="small-text exception-buying">
-                  Cerveza <span className="inline-badge-medium">cvza</span>
+                  {tokenDetails?.name} <span className="inline-badge-medium">{tokenDetails?.symbol}</span>
                 </div>
                 <div className="small-text crypto-price">
                   ~${tokenUsd.usd.toLocaleString(undefined, { minimumFractionDigits: 5, maximumFractionDigits: 5 })}

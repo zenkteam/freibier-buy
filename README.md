@@ -2,7 +2,7 @@
 
 ![Screenshot](https://raw.githubusercontent.com/zenkteam/freibier-buy/master/docu/screenshot.png)
 
-Quipuswap integration to buy CVZA tokens from any website.
+Quipuswap integration to buy specific tokens from any website.
 
 ## Usage
 
@@ -14,10 +14,16 @@ There are differente elements you can display on your site:
 
 ```html
 <!-- embed the exchage form -->
-<div id="root"></div>
+<div
+  id="root"
+  data-swap-contract="KT1F3BqwEAoa2koYX4Hz7zJ8xfGSxxAGVT8t"
+></div>
 
 <!-- embed a price chart -->
-<div id="price-chart"></div>
+<div
+  id="price-chart"
+  data-swap-contract="KT1F3BqwEAoa2koYX4Hz7zJ8xfGSxxAGVT8t"
+></div>
 
 <!-- embed the current price in USD (can be used in multiple locations) -->
 <div class="price-per-usd"></div>

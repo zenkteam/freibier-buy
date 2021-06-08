@@ -6,22 +6,36 @@ import PriceChart from "./PriceChart";
 // init exchange
 const appNode = document.getElementById("root");
 if (appNode) {
-  ReactDOM.render(
-    <React.StrictMode>
-      <App />
-    </React.StrictMode>,
-    appNode
-  );
+  if (!appNode.dataset.swapContract) {
+    console.error('Please specify data-swap-contract for your buy form.')
+  } else {
+    ReactDOM.render(
+      <React.StrictMode>
+        <App 
+          swapContract={appNode.dataset.swapContract}
+        />
+      </React.StrictMode>,
+      appNode
+    );
+  }
 }
 
 
 // init Price display
 const priceChartNode = document.getElementById("price-chart");
 if (priceChartNode) {
-  ReactDOM.render(
-    <React.StrictMode>
-      <PriceChart />
-    </React.StrictMode>,
-    priceChartNode
-  );
+  if (!priceChartNode.dataset.swapContract) {
+    console.error('Please specify data-swap-contract for your price chart.')
+  } else {
+    const decimals = parseInt(priceChartNode.dataset.tokenDecimals || '')
+    ReactDOM.render(
+      <React.StrictMode>
+        <PriceChart 
+          swapContractAddress={priceChartNode.dataset.swapContract}
+          tokenDecimals={decimals || undefined}
+        />
+      </React.StrictMode>,
+      priceChartNode
+    );
+  }
 }

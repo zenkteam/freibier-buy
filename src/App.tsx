@@ -8,8 +8,13 @@ import ExchangeForm from './components/ExchangeForm';
 import config from './config';
 import Publish from './publish';
 import PriceChart from './PriceChart';
+import { bytes2Char } from '@taquito/utils';
 
-const App = () => {
+interface AppProps {
+  swapContract: string
+}
+
+const App = ({ swapContract }: AppProps) => {
   const [Tezos, setTezos] = useState<TezosToolkit>(
     new TezosToolkit(config.rpcUrl)
   );
@@ -24,25 +29,50 @@ const App = () => {
   const [beaconConnection, setBeaconConnection] = useState<boolean>(false);
   const [showTokenomics, setShowTokenomics] = useState<boolean>(false);
   const [showDisclaimer, setShowDisclaimer] = useState<boolean>(false);
+  const [tokenDetails, setTokenDetails] = useState<any>();
 
   // creates contract instance
   useEffect(() => {
     async function initContract() {
-      const newContract = await Tezos.wallet.at(config.swapContractAddress);
+      const newContract = await Tezos.wallet.at(swapContract);
       const newStorage: any = await newContract.storage();
       setContract(newContract);
       setStorage(newStorage);
+      initTokenContract(newStorage.storage.token_address)
     }
+
+    async function initTokenContract(coinContract: string) {
+      try {
+        const newContract = await Tezos.wallet.at(coinContract);
+        const newStorage: any = await newContract.storage();
+        const metdata: any = await newStorage.assets.token_metadata.get(0);
+        const tokenDetails = {
+          totalSupply: parseInt(newStorage.assets.total_supply),
+          name: bytes2Char(metdata['token_info'].get('name')),
+          symbol: bytes2Char(metdata['token_info'].get('symbol')),
+          description: bytes2Char(metdata['token_info'].get('description')),
+          thumbnailUri: bytes2Char(metdata['token_info'].get('thumbnailUri')),
+          decimals: parseInt(bytes2Char(metdata['token_info'].get('decimals'))),
+          shouldPreferSymbol: bytes2Char(metdata['token_info'].get('shouldPreferSymbol')) === 'true',
+          coinContractAddress: coinContract,
+          swapContractAddress: swapContract,
+        }
+        setTokenDetails(tokenDetails)
+      } catch (e) {
+        console.error(e)
+      }
+    }
+
     initContract()
-  }, [Tezos.wallet])
+  }, [Tezos.wallet, swapContract])
 
   // update balances
   const updateTokenBalance = useCallback(() => {
-    if (userAddress) {
+    if (userAddress && tokenDetails) {
       const url = `https://api.better-call.dev/v1/account/${config.network}/${userAddress}/token_balances`
       fetch(url)
         .then(res => res.json())
-        .then(data => data.balances.find((coin: any) => coin.contract === config.coinContractAddress))
+        .then(data => data.balances.find((coin: any) => coin.contract === tokenDetails.coinContractAddress))
         .then(coin => {
           if (coin) {
             setUserTokenBalance(parseInt(coin.balance) / 10**coin.decimals);
@@ -53,11 +83,15 @@ const App = () => {
     } else {
       setUserTokenBalance(-1);
     }
-  }, [setUserTokenBalance, userAddress])
+  }, [setUserTokenBalance, userAddress, tokenDetails])
   const updateBalance = useCallback(async () => {
     if (userAddress) {
-      const balance = await Tezos.tz.getBalance(userAddress);
-      setUserBalance(balance.toNumber() / 10**6);
+      try {
+        const balance = await Tezos.tz.getBalance(userAddress);
+        setUserBalance(balance.toNumber() / 10**6);
+      } catch (e) {
+        console.warn(e)
+      }
     } else {
       setUserBalance(-1);
     }
@@ -68,9 +102,9 @@ const App = () => {
   }, [userAddress, updateTokenBalance, updateBalance])
   useEffect(() => {
     if (userTokenBalance !== -1) {
-      Publish.userTokenBalance(userTokenBalance);
+      Publish.userTokenBalance(userTokenBalance, tokenDetails?.symbol);
     }
-  }, [userTokenBalance])
+  }, [userTokenBalance, tokenDetails])
   useEffect(() => {
     if (userBalance !== -1) {
       Publish.userBalance(userBalance);
@@ -97,15 +131,15 @@ const App = () => {
       <div className="card-body">
         <div className="form-block content-width-large align-center w-form">
           <div className="space-bottom">
-            <h3 className="heading no-space-bottom">Buy $CVZA</h3>
+            <h3 className="heading no-space-bottom">Buy ${tokenDetails?.symbol}</h3>
             { userTokenBalance === -1 &&
-              <div id="current-CVZA" className="large-text">
+              <div id="current-token" className="large-text">
                 Connect your wallet to see your balance and trade
               </div>
             }
             { userTokenBalance !== -1 &&
-              <div id="current-CVZA" className="large-text">
-                Your are currently holding <span className="inline-badge">{userTokenBalance.toLocaleString(undefined, { maximumFractionDigits: 0 })}</span> $CVZA
+              <div id="current-token" className="large-text">
+                Your are currently holding <span className="inline-badge">{userTokenBalance.toLocaleString(undefined, { maximumFractionDigits: 0 })}</span> ${tokenDetails?.symbol}
               </div>
             }
           </div>
@@ -114,6 +148,7 @@ const App = () => {
               <div className="w-layout-grid grid-4">
                 <ExchangeForm
                   contract={contract}
+                  tokenDetails={tokenDetails}
                   updateUserBalance={updateBalance}
                   updateUserTokenBalance={updateTokenBalance}
                   Tezos={Tezos}
@@ -163,15 +198,15 @@ const App = () => {
                         <div>
                           <div className="grid-halves full-width">
                             <div id="w-node-_2bc1ab25-9a15-d706-5153-310495f51bfc-856d06c6">Contract</div>
-                            <div className="tiny-text">{config.coinContractAddress}</div>
+                            <div className="tiny-text">{tokenDetails?.coinContractAddress}</div>
                           </div>
                           <div className="grid-halves full-width">
                             <div id="w-node-_2bc1ab25-9a15-d706-5153-310495f51c01-856d06c6">DEX LP Contract</div>
-                            <div className="tiny-text">{config.swapContractAddress}</div>
+                            <div className="tiny-text">{tokenDetails?.swapContractAddress}</div>
                           </div>
                           <div className="grid-halves full-width">
                             <div id="w-node-_2bc1ab25-9a15-d706-5153-310495f51c06-856d06c6">Total Supply</div>
-                            <div className="small-text">{config.tokenSupply.toLocaleString()}</div>
+                            <div className="small-text">{tokenDetails?.totalSupply?.toLocaleString()}</div>
                           </div>
                           <div className="grid-halves full-width">
                             <div id="w-node-_2bc1ab25-9a15-d706-5153-310495f51c0b-856d06c6">Price per USD</div>
@@ -188,7 +223,12 @@ const App = () => {
                         </div>
                         <div className="graph-wrapper">
                           <div className="graph-svg">
-                            <PriceChart/>
+                            { tokenDetails &&
+                              <PriceChart
+                                swapContractAddress={tokenDetails.swapContractAddress}
+                                tokenDecimals={tokenDetails.decimals}
+                              />
+                            }
                           </div>
                         </div>
                       </div>

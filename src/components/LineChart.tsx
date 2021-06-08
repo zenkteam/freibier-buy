@@ -149,6 +149,8 @@ const LineChart = ({
   return (
     <svg
       viewBox={`0 0 ${width} ${height}`}
+      height="100%"
+      width="100%"
     >
       <XAxis />
       {LabelsXAxis()}

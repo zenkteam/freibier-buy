@@ -19,8 +19,8 @@ const publishEvent = (eventName: string, content: any) => {
 }
 
 const Publish = {
-  userTokenBalance: function (tokenBalance: number) {
-    const content = (tokenBalance).toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 }) + ' CVZA';
+  userTokenBalance: function (tokenBalance: number, tokenSymbol: string) {
+    const content = (tokenBalance).toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 }) + ' ' + tokenSymbol;
     attachToElements('user-token-balance', content);
     publishEvent('user-token-balance', tokenBalance);
   },

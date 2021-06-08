@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from "react";
 import LineChart from "./components/LineChart";
-import config from './config';
 
 function process_pool_data(data: Array<any>, tokenDecimals: number) {
   return data.map(item => {
@@ -15,16 +14,21 @@ function process_pool_data(data: Array<any>, tokenDecimals: number) {
     }
   })
 }
-const PriceChart = () => {
+
+interface PriceChartProps {
+  swapContractAddress: string;
+  tokenDecimals?: number;
+}
+
+const PriceChart = ({ swapContractAddress, tokenDecimals = 8 }: PriceChartProps) => {
   const [data, setData] = useState<Array<any>>([]);
 
   useEffect(() => {
     // load history
-    const smart_contract = config.swapContractAddress;
     const limit = 700; // max: 1000
-    fetch(`https://api.tzkt.io/v1/contracts/${smart_contract}/storage/history?limit=${limit}`)
+    fetch(`https://api.tzkt.io/v1/contracts/${swapContractAddress}/storage/history?limit=${limit}`)
       .then(res => res.json())
-      .then(data => process_pool_data(data, 8))
+      .then(data => process_pool_data(data, tokenDecimals))
       .then(data => data.reverse())
       .then(data => data.map((item, index) => {
         return {
@@ -34,7 +38,7 @@ const PriceChart = () => {
         }
       }))
       .then(data => setData(data))
-  }, [])
+  }, [swapContractAddress, tokenDecimals])
 
   return (
     <>
