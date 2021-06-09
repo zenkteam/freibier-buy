@@ -332,7 +332,7 @@ const ExchangeForm = ({ contract, tokenDetails, updateUserBalance, updateUserTok
                   {tokenDetails?.name} <span className="inline-badge-medium">{tokenDetails?.symbol}</span>
                 </div>
                 <div className="small-text crypto-price">
-                  ~${tokenUsd.usd.toLocaleString(undefined, { minimumFractionDigits: 5, maximumFractionDigits: 5 })}
+                  ~${tokenUsd.usd.toLocaleString(undefined, { minimumFractionDigits: 2, minimumSignificantDigits: 1, maximumSignificantDigits: 3 })}
                   { tezUsd.usd_24h_change !== 0 && (tokenUsd.usd_24h_change > 0 || tokenUsd.usd_24h_change > tezUsd.usd_24h_change) &&
                     <>
                     &nbsp;

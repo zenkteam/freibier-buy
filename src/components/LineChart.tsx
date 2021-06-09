@@ -24,8 +24,8 @@ const LineChart = ({
 
   const digits =
     parseFloat(maximumYFromData.toString()).toFixed(precision).length + 1;
+  const padding = (FONT_SIZE + (digits * 1.4) + 3) * 3;
 
-  const padding = (FONT_SIZE + digits + 4) * 3;
   const chartWidth = width - padding * 2;
   const chartHeight = height - padding * 2;
 

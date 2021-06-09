@@ -210,15 +210,15 @@ const App = ({ swapContract }: AppProps) => {
                           </div>
                           <div className="grid-halves full-width">
                             <div id="w-node-_2bc1ab25-9a15-d706-5153-310495f51c0b-856d06c6">Price per USD</div>
-                            <div className="price-per-usd"></div>
+                            <div className="price-per-usd">N/A</div>
                           </div>
                           <div className="grid-halves full-width">
                             <div id="w-node-_2bc1ab25-9a15-d706-5153-310495f51c10-856d06c6">Price per Tezos</div>
-                            <div className="price-per-tez"></div>
+                            <div className="price-per-tez">N/A</div>
                           </div>
                           <div className="grid-halves full-width space-bottom">
                             <div id="w-node-_2bc1ab25-9a15-d706-5153-310495f51c15-856d06c6">Price Change 24h</div>
-                            <div className="price-change-24h"></div>
+                            <div className="price-change-24h">N/A</div>
                           </div>
                         </div>
                         <div className="graph-wrapper">

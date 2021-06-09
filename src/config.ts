@@ -2,7 +2,7 @@ import { NetworkType } from "@airgap/beacon-sdk";
 
 const config = {
   network: NetworkType.MAINNET,
-  rpcUrl: "https://rpc.tzbeta.net",
+  rpcUrl: "https://rpc.tzstats.com",
   defaultTezPrice: {
     last_updated_at: 1621264908,
     usd: 5.24,

@@ -35,12 +35,12 @@ const Publish = {
     publishEvent('price-change-24h', change);
   },
   pricePerTez: function (price: number) {
-    const content = (price).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 6 }) + ' ꜩ';
+    const content = (price).toLocaleString(undefined, { minimumFractionDigits: 2, minimumSignificantDigits: 1, maximumSignificantDigits: 2 }) + ' ꜩ';
     attachToElements('price-per-tez', content);
     publishEvent('price-per-tez', price);
   },
   pricePerUsd: function (price: number) {
-    const content = '$' + (price).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 5 });
+    const content = '$' + (price).toLocaleString(undefined, { minimumFractionDigits: 2, minimumSignificantDigits: 1, maximumSignificantDigits: 3 });
     attachToElements('price-per-usd', content);
     publishEvent('price-per-usd', price);
   },

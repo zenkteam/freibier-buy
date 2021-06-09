@@ -40,6 +40,8 @@ const PriceChart = ({ swapContractAddress, tokenDecimals = 8 }: PriceChartProps)
       .then(data => setData(data))
   }, [swapContractAddress, tokenDecimals])
 
+  const precision = data.length ? (data[data.length-1].y).toLocaleString(undefined, { minimumFractionDigits: 2, minimumSignificantDigits: 1, maximumSignificantDigits: 2 }).length - 2 : 5
+
   return (
     <>
       {data.length &&
@@ -48,7 +50,7 @@ const PriceChart = ({ swapContractAddress, tokenDecimals = 8 }: PriceChartProps)
           height={300}
           data={data}
           horizontalGuides={5}
-          precision={5}
+          precision={precision}
           verticalGuides={1}
         />
       }
