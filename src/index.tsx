@@ -2,6 +2,7 @@ import React from "react";
 import ReactDOM from "react-dom";
 import App from "./App";
 import PriceChart from "./PriceChart";
+import Farm from "./Farm";
 
 // init exchange
 const appNode = document.getElementById("root");
@@ -33,6 +34,23 @@ if (priceChartNode) {
         <PriceChart 
           swapContractAddress={priceChartNode.dataset.swapContract}
           tokenDecimals={decimals || undefined}
+        />
+      </React.StrictMode>,
+      priceChartNode
+    );
+  }
+}
+
+// init Price display
+const priceChartNode = document.getElementById("farm");
+if (priceChartNode) {
+  if (!priceChartNode.dataset.swapContract) {
+    console.error('Please specify data-swap-contract for your farm.')
+  } else {
+    ReactDOM.render(
+      <React.StrictMode>
+        <Farm 
+          swapContractAddress={priceChartNode.dataset.swapContract}
         />
       </React.StrictMode>,
       priceChartNode
