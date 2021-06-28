@@ -4,17 +4,18 @@ import { TezosToolkit } from "@taquito/taquito";
 import ConnectButton from "./components/ConnectWallet";
 import DisconnectButton from "./components/DisconnectWallet";
 import qrcode from "qrcode-generator";
-import ExchangeForm from './components/ExchangeForm';
+import StakingForm from './components/StakingForm';
 import config from './config';
 import Publish from './publish';
 import PriceChart from './PriceChart';
 import { bytes2Char } from '@taquito/utils';
 
 interface FarmProps {
-  swapContract: string
+  farmContract: string | any,
+  swapContract: string | any
 }
 
-const Farm = ({ swapContract }: FarmProps) => {
+const Farm = ({ farmContract, swapContract }: FarmProps) => {
   const [Tezos, setTezos] = useState<TezosToolkit>(
     new TezosToolkit(config.rpcUrl)
   );
@@ -55,7 +56,7 @@ const Farm = ({ swapContract }: FarmProps) => {
           decimals: parseInt(bytes2Char(metdata['token_info'].get('decimals'))),
           shouldPreferSymbol: bytes2Char(metdata['token_info'].get('shouldPreferSymbol')) === 'true',
           coinContractAddress: coinContract,
-          swapContractAddress: swapContract,
+          farmContractAddress: farmContract,
         }
         setTokenDetails(tokenDetails)
       } catch (e) {
@@ -64,7 +65,7 @@ const Farm = ({ swapContract }: FarmProps) => {
     }
 
     initContract()
-  }, [Tezos.wallet, swapContract])
+  }, [Tezos.wallet, farmContract])
 
   // update balances
   const updateTokenBalance = useCallback(() => {
@@ -127,179 +128,81 @@ const Farm = ({ swapContract }: FarmProps) => {
   };
 
   return (
-    <div className="card bg-primary-1">
-      <div className="card-body">
-        <div className="form-block content-width-large align-center w-form">
-          <div className="space-bottom">
-            <h3 className="heading no-space-bottom">Buy ${tokenDetails?.symbol}</h3>
-            { userTokenBalance === -1 &&
-              <div id="current-token" className="large-text">
-                Connect your wallet to see your balance and trade
-              </div>
-            }
-            { userTokenBalance !== -1 &&
-              <div id="current-token" className="large-text">
-                Your are currently holding <span className="inline-badge">{userTokenBalance.toLocaleString(undefined, { maximumFractionDigits: 0 })}</span> ${tokenDetails?.symbol}
-              </div>
-            }
-          </div>
-          <div className="form-grid-vertical">
-            <div className="form-row form-row-last">
-              <div className="w-layout-grid grid-4">
-                <ExchangeForm
-                  contract={contract}
-                  tokenDetails={tokenDetails}
-                  updateUserBalance={updateBalance}
-                  updateUserTokenBalance={updateTokenBalance}
-                  Tezos={Tezos}
-                  userAddress={userAddress}
-                  userBalance={userBalance}
-                  setStorage={setStorage}
-                  storage={storage}
-                />
-
-                {!userAddress &&
-                  <ConnectButton
-                    Tezos={Tezos}
-                    setPublicToken={setPublicToken}
-                    setWallet={setWallet}
-                    setUserAddress={setUserAddress}
-                    setBeaconConnection={setBeaconConnection}
-                    wallet={wallet}
-                  />
-                }
-
-                { /* Disconnect */}
-                {userAddress &&
-                  <DisconnectButton
-                    wallet={wallet}
-                    setPublicToken={setPublicToken}
-                    setUserAddress={setUserAddress}
-                    setWallet={setWallet}
-                    setTezos={setTezos}
-                    setBeaconConnection={setBeaconConnection}
-                  />
-                }
-                </div>
-
+    <div className="section bg-gray-1">
+      <div className="container">
+          <div className="farm">
+          <div className="farm-title-wrapper">
+            <div className="farm-titel">
+              <div className="farm-titel-inlay">
                 <div>
-                  <div className="accordion-group exception-buycvza">
-                    <div className="accordion-title-panel exception-buycerveza" onClick={() => setShowTokenomics(!showTokenomics)}>
-                      <h5 className="small-text">Tokenomics</h5>
-                      <img 
-                        alt=""
-                        className="accordion-arrow"
-                        src="https://uploads-ssl.webflow.com/6091079111aa5aff3f19582d/6091079111aa5ad8b31958a5_icon-chevron-right.svg"
-                        style={{transform: showTokenomics ? 'rotateZ(90deg)' : 'rotateZ(0deg)', transformStyle: 'preserve-3d', transition: 'transform 200ms'}}
-                      />
-                    </div>
-                    <div className="accordion-content" style={{display: showTokenomics ? 'block' : 'none', opacity: 1}}>
-                      <div>
-                        <div>
-                          <div className="grid-halves full-width">
-                            <div id="w-node-_2bc1ab25-9a15-d706-5153-310495f51bfc-856d06c6">Contract</div>
-                            <div className="tiny-text">{tokenDetails?.coinContractAddress}</div>
-                          </div>
-                          <div className="grid-halves full-width">
-                            <div id="w-node-_2bc1ab25-9a15-d706-5153-310495f51c01-856d06c6">DEX LP Contract</div>
-                            <div className="tiny-text">{tokenDetails?.swapContractAddress}</div>
-                          </div>
-                          <div className="grid-halves full-width">
-                            <div id="w-node-_2bc1ab25-9a15-d706-5153-310495f51c06-856d06c6">Total Supply</div>
-                            <div className="small-text">{tokenDetails?.totalSupply?.toLocaleString()}</div>
-                          </div>
-                          <div className="grid-halves full-width">
-                            <div id="w-node-_2bc1ab25-9a15-d706-5153-310495f51c0b-856d06c6">Price per USD</div>
-                            <div className="price-per-usd">N/A</div>
-                          </div>
-                          <div className="grid-halves full-width">
-                            <div id="w-node-_2bc1ab25-9a15-d706-5153-310495f51c10-856d06c6">Price per Tezos</div>
-                            <div className="price-per-tez">N/A</div>
-                          </div>
-                          <div className="grid-halves full-width space-bottom">
-                            <div id="w-node-_2bc1ab25-9a15-d706-5153-310495f51c15-856d06c6">Price Change 24h</div>
-                            <div className="price-change-24h">N/A</div>
-                          </div>
-                        </div>
-                        <div className="graph-wrapper">
-                          <div className="graph-svg">
-                            { tokenDetails &&
-                              <PriceChart
-                                swapContractAddress={tokenDetails.swapContractAddress}
-                                tokenDecimals={tokenDetails.decimals}
-                              />
-                            }
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="accordion-group exception-buycvza">
-                    <div className="accordion-title-panel exception-buycerveza" onClick={() => setShowDisclaimer(!showDisclaimer)}>
-                      <h5 className="small-text">Disclaimer</h5>
-                      <img
-                        alt=""
-                        className="accordion-arrow"
-                        src="https://uploads-ssl.webflow.com/6091079111aa5aff3f19582d/6091079111aa5ad8b31958a5_icon-chevron-right.svg"  
-                        style={{transform: showDisclaimer ? 'rotateZ(90deg)' : 'rotateZ(0deg)', transformStyle: 'preserve-3d', transition: 'transform 200ms'}}
-                      />
-                    </div>
-                    <div className="accordion-content" style={{display: showDisclaimer ? 'block' : 'none', opacity: 1}}>
-                      <div><p>
-                        The rates displayed by the calculator represent market exchange rates, and are provided for informational and estimation purposes only. They do not include any conversion fees or other charges applicable to a conversion or other transaction. The calculator is based on a third party service, and Company Freibier.io and its affiliates accept no responsibility for the contents or results of any calculations made using the calculator.
-                        <br />
-                      </p></div>
-                    </div>
-                  </div>
+                  <div>Total Staked</div>
+                  <div id="totalStaked" className="totalstaked">$5,849,400</div>
                 </div>
-              
+                <div className="align-right">
+                  <div>Farming APY</div>
+                  <div id="farmApy" className="farmapy">321.08%</div>
+                </div>
+                <div data-w-id="e799ee40-c2cf-545d-1c77-b15068d00b93" data-animation-type="lottie" data-src="documents/lf30_editor_qdh1yqpy.json" data-loop="1" data-direction="1" data-autoplay="1" data-is-ix2-target="0" data-renderer="svg" data-default-duration="1.6" data-duration="1.6" className="lottie-animation-copy"></div>
+              </div>
+            </div>
+            <div className="farm-title-coins">
+              <div className="coin-top">
+                <div className="farm-coin"><img src="images/1_ZdaWerzN9F7oIyhZEwcRqQ-1.jpeg" loading="lazy" id="tokenImageInput" alt="" /></div>
+              </div>
+              <div>
+                <div className="farm-coin"><img src="images/CVCA-COIN-ico-256.png" loading="lazy" id="tokenImageOutput" alt="" /></div>
+              </div>
             </div>
           </div>
+          <h5>Deposit <span id="tokenNameInput" className="tokennameinput">$CVZA</span> to earn <span id="tokenNameOutput" className="tokennameoutput">$WSTD</span></h5>
+          <div id="active" className="text-pill-tiny green">
+            <div>Active</div>
+          </div>
+          <div id="ended" className="text-pill-tiny red">
+            <div>Ended</div>
+          </div>
+          <div className="w-layout-grid farm-grid">
+            <div className="label">Start date</div>
+            <div id="startDate" className="farm-startdate">7 may 2021 20:00 UTC</div>
+            <div className="label">End date</div>
+            <div id="endDate" className="farm-enddate">2 July 2021 20:00 UTC</div>
+            <div className="label">Your stake</div>
+            <div id="yourStake" className="farm-yourstake">$0.00</div>
+            <div className="label">$CVZA reward</div>
+            <div id="cvzaReward" className="farm-cvzareward">$0.00</div>
+            <div className="label">$WSTD reward</div>
+            <div id="returnReward" className="farm-tokenreward">$0.00</div>
+          </div>
+          <a id="connectWallet" href="#" className="button bg-primary-4 w-button">Connect your Wallet</a>
+          <a id="connectWalletDisabled" href="#" className="button bg-primary-4 disabled w-button">Connect your Wallet</a>
+          {!userAddress &&
+            <ConnectButton
+              Tezos={Tezos}
+              setPublicToken={setPublicToken}
+              setWallet={setWallet}
+              setUserAddress={setUserAddress}
+              setBeaconConnection={setBeaconConnection}
+              wallet={wallet}
+            />
+          }
 
-          { /* Connecting */}
-          {false && publicToken && (!userAddress || isNaN(userBalance)) &&
-            <div id="content">
-              <p className="text-align-center">
-                <i className="fas fa-broadcast-tower"></i>&nbsp; Connecting to your wallet
-                </p>
-              <div
-                dangerouslySetInnerHTML={generateQrCode()}
-                className="text-align-center"
-              ></div>
-              <p id="public-token">
-                {copiedPublicToken ? (
-                  <span id="public-token-copy__copied">
-                    <i className="far fa-thumbs-up"></i>
-                  </span>
-                ) : (
-                  <span
-                    id="public-token-copy"
-                    onClick={() => {
-                      if (publicToken) {
-                        navigator.clipboard.writeText(publicToken);
-                        setCopiedPublicToken(true);
-                        setTimeout(() => setCopiedPublicToken(false), 2000);
-                      }
-                    }}
-                  >
-                    <i className="far fa-copy"></i>
-                  </span>
-                )}
-
-                <span>
-                  Public token: <span>{publicToken}</span>
-                </span>
-              </p>
-              <p className="text-align-center">
-                Status: {beaconConnection ? "Connected" : "Disconnected"}
-              </p>
-            </div>
+          { /* Disconnect */}
+          {userAddress &&
+            <DisconnectButton
+              wallet={wallet}
+              setPublicToken={setPublicToken}
+              setUserAddress={setUserAddress}
+              setWallet={setWallet}
+              setTezos={setTezos}
+              setBeaconConnection={setBeaconConnection}
+            />
           }
 
         </div>
       </div>
     </div>
+    
   );
 };
 
-export default App;
+export default Farm;

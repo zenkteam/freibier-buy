@@ -1,5 +1,7 @@
 import { NetworkType } from "@airgap/beacon-sdk";
 
+const network = 'florencenet';
+
 const config = {
   network: NetworkType.MAINNET,
   rpcUrl: "https://rpc.tzbeta.net",
@@ -16,7 +18,14 @@ const config = {
     usd_24h_change: 0,
     usd_24h_vol: 0,
     usd_market_cap: 0,
-  },
+  }
+}
+
+switch(network){
+  case 'florencenet':
+    config.rpcUrl = "https://florence-tezos.giganode.io/";
+    config.network = NetworkType.FLORENCENET;
+    break;
 }
 
 export default config;
