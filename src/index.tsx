@@ -41,7 +41,7 @@ if (priceChartNode) {
   }
 }
 
-// init Price display
+// init farm display
 const farmNode = document.getElementById("farm");
 if (farmNode) {
   if (!farmNode.dataset.swapContract) {
