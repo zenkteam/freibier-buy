@@ -7,7 +7,6 @@ import qrcode from "qrcode-generator";
 import StakingForm from './components/StakingForm';
 import config from './config';
 import Publish from './publish';
-import PriceChart from './PriceChart';
 import { bytes2Char } from '@taquito/utils';
 
 interface FarmProps {
@@ -20,6 +19,7 @@ const Farm = ({ farmContract, swapContract }: FarmProps) => {
     new TezosToolkit(config.rpcUrl)
   );
   const [contract, setContract] = useState<any>(undefined);
+  const [farmContractInstance, setFarmContractInstance] = useState<any>(undefined);
   const [publicToken, setPublicToken] = useState<string | null>("");
   const [wallet, setWallet] = useState<any>(null);
   const [userAddress, setUserAddress] = useState<string>("");
@@ -31,6 +31,8 @@ const Farm = ({ farmContract, swapContract }: FarmProps) => {
   const [showTokenomics, setShowTokenomics] = useState<boolean>(false);
   const [showDisclaimer, setShowDisclaimer] = useState<boolean>(false);
   const [tokenDetails, setTokenDetails] = useState<any>();
+  const [farm, setFarm] = useState<any>({});
+  const [farmStorage, setFarmStorage] = useState<any>();
 
   // creates contract instance
   useEffect(() => {
@@ -40,6 +42,27 @@ const Farm = ({ farmContract, swapContract }: FarmProps) => {
       setContract(newContract);
       setStorage(newStorage);
       initTokenContract(newStorage.storage.token_address)
+    }
+
+    async function initFarmContract() {
+      const farmContractInstance = await Tezos.wallet.at(farmContract);
+      const newFarmStorage: any = await farmContractInstance.storage();
+      setFarmContractInstance(farmContractInstance);
+      setFarmStorage(newFarmStorage);
+      initFarmContract(newFarmStorage.storage.token_address)
+    }
+
+    async function initFarmContract(farmContract: string) {
+      try {
+        const newContract = await Tezos.wallet.at(coinContract);
+        const newStorage: any = await newContract.storage();
+        const metdata: any = await newStorage.assets.token_metadata.get(0);
+        const tokenDetails = {
+        }
+        setTokenDetails(tokenDetails)
+      } catch (e) {
+        console.error(e)
+      }
     }
 
     async function initTokenContract(coinContract: string) {
@@ -127,6 +150,41 @@ const Farm = ({ farmContract, swapContract }: FarmProps) => {
     return { __html: qr.createImgTag(4) };
   };
 
+  const APY = async function delegatorReward(storage: Record<string, any>, owner: string) {
+    const delegatorRecord = await storage['delegators'].get(owner);
+    if (!delegatorRecord) {
+      return new BigNumber(0);
+    }
+    const accRewardPerShareStart = delegatorRecord[
+      'accumulatedRewardPerShareStart'
+    ] as BigNumber;
+    const accRewardPerShareEnd = await this.updatePool(storage);
+    const accumulatedRewardPerShare = accRewardPerShareEnd.minus(
+      accRewardPerShareStart
+    );
+    const delegatorReward = accumulatedRewardPerShare.multipliedBy(
+      delegatorRecord['lpTokenBalance']
+    );
+    // remove precision
+    return delegatorReward.div(1000000).integerValue();
+  }
+
+  useEffect(() => {
+    let farm = {
+      startDate: 'July 1st 2021',
+      endDate: 'September 1st 2021',
+      totalStaked: 0,
+      APY: 0,
+      personalStake: 0,
+      personalUnclaimedReward: 0,
+      personalTotalCVZAearned: 0,
+    }
+
+    farm.APY = await delegatorReward();
+
+    setFarm(farm)
+  })
+
   return (
     <div className="section bg-gray-1">
       <div className="container">
@@ -136,11 +194,11 @@ const Farm = ({ farmContract, swapContract }: FarmProps) => {
               <div className="farm-titel-inlay">
                 <div>
                   <div>Total Staked</div>
-                  <div id="totalStaked" className="totalstaked">$5,849,400</div>
+                  <div id="totalStaked" className="totalstaked">{farm.totalStaked}</div>
                 </div>
                 <div className="align-right">
                   <div>Farming APY</div>
-                  <div id="farmApy" className="farmapy">321.08%</div>
+                  <div id="farmApy" className="farmapy">{farm.APY}%</div>
                 </div>
                 <div data-w-id="e799ee40-c2cf-545d-1c77-b15068d00b93" data-animation-type="lottie" data-src="documents/lf30_editor_qdh1yqpy.json" data-loop="1" data-direction="1" data-autoplay="1" data-is-ix2-target="0" data-renderer="svg" data-default-duration="1.6" data-duration="1.6" className="lottie-animation-copy"></div>
               </div>
@@ -154,7 +212,7 @@ const Farm = ({ farmContract, swapContract }: FarmProps) => {
               </div>
             </div>
           </div>
-          <h5>Deposit <span id="tokenNameInput" className="tokennameinput">$CVZA</span> to earn <span id="tokenNameOutput" className="tokennameoutput">$WSTD</span></h5>
+          <h5>Deposit <span id="tokenNameInput" className="tokennameinput">$CVZA</span> to earn more<span id="tokenNameOutput" className="tokennameoutput">$CVZA</span></h5>
           <div id="active" className="text-pill-tiny green">
             <div>Active</div>
           </div>
@@ -163,15 +221,15 @@ const Farm = ({ farmContract, swapContract }: FarmProps) => {
           </div>
           <div className="w-layout-grid farm-grid">
             <div className="label">Start date</div>
-            <div id="startDate" className="farm-startdate">7 may 2021 20:00 UTC</div>
+            <div id="startDate" className="farm-startdate">{farm.startDate}</div>
             <div className="label">End date</div>
-            <div id="endDate" className="farm-enddate">2 July 2021 20:00 UTC</div>
+            <div id="endDate" className="farm-enddate">{farm.endDate}</div>
             <div className="label">Your stake</div>
-            <div id="yourStake" className="farm-yourstake">$0.00</div>
+            <div id="yourStake" className="farm-yourstake">${farm.personalStake}</div>
             <div className="label">$CVZA reward</div>
-            <div id="cvzaReward" className="farm-cvzareward">$0.00</div>
-            <div className="label">$WSTD reward</div>
-            <div id="returnReward" className="farm-tokenreward">$0.00</div>
+            <div id="cvzaReward" className="farm-cvzareward">${farm.personalUnclaimedReward}</div>
+            <div className="label">Total $CVZA earned</div>
+            <div id="returnReward" className="farm-tokenreward">${farm.personalTotalCVZAearned}</div>
           </div>
           {!userAddress &&
             <ConnectButton
