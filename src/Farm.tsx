@@ -173,8 +173,6 @@ const Farm = ({ farmContract, swapContract }: FarmProps) => {
             <div className="label">$WSTD reward</div>
             <div id="returnReward" className="farm-tokenreward">$0.00</div>
           </div>
-          <a id="connectWallet" href="#" className="button bg-primary-4 w-button">Connect your Wallet</a>
-          <a id="connectWalletDisabled" href="#" className="button bg-primary-4 disabled w-button">Connect your Wallet</a>
           {!userAddress &&
             <ConnectButton
               Tezos={Tezos}
