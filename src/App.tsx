@@ -206,7 +206,7 @@ const App = ({ swapContract }: AppProps) => {
                           </div>
                           <div className="grid-halves full-width">
                             <div id="w-node-_2bc1ab25-9a15-d706-5153-310495f51c06-856d06c6">Total Supply</div>
-                            <div className="small-text">{tokenDetails?.totalSupply?.toLocaleString()}</div>
+                            <div className="small-text">{(tokenDetails?.totalSupply / (10**tokenDetails?.decimals)).toLocaleString()}</div>
                           </div>
                           <div className="grid-halves full-width">
                             <div id="w-node-_2bc1ab25-9a15-d706-5153-310495f51c0b-856d06c6">Price per USD</div>
