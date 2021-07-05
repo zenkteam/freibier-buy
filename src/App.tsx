@@ -246,7 +246,7 @@ const App = ({ swapContract }: AppProps) => {
                     </div>
                     <div className="accordion-content" style={{display: showDisclaimer ? 'block' : 'none', opacity: 1}}>
                       <div><p>
-                        The rates displayed by the calculator represent market exchange rates, and are provided for informational and estimation purposes only. They do not include any conversion fees or other charges applicable to a conversion or other transaction. The calculator is based on a third party service, and Company Freibier.io and its affiliates accept no responsibility for the contents or results of any calculations made using the calculator.
+                        The rates displayed by the calculator represent market exchange rates, and are provided for informational and estimation purposes only. They do not include any conversion fees or other charges applicable to a conversion or other transaction. The calculator is based on a third party service, the Company and its affiliates accept no responsibility for the contents or results of any calculations made using the calculator.
                         <br />
                       </p></div>
                     </div>
