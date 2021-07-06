@@ -1,6 +1,10 @@
 import { NetworkType } from "@airgap/beacon-sdk";
 
-const network = 'florencenet';
+enum Network {
+  MAINNET,
+  FLORENCENET,
+  SANDBOX,
+}
 
 const config = {
   network: NetworkType.MAINNET,
@@ -18,13 +22,23 @@ const config = {
     usd_24h_change: 0,
     usd_24h_vol: 0,
     usd_market_cap: 0,
-  }
-}
+  },
+};
 
-switch(network){
-  case 'florencenet':
-    config.rpcUrl = "https://florence-tezos.giganode.io/";
+const network = Network.SANDBOX;
+
+switch (network as Network) {
+  case Network.MAINNET:
+    config.rpcUrl = "https://mainnet-tezos.giganode.io/";
+    config.network = NetworkType.MAINNET;
+    break;
+  case Network.FLORENCENET:
+    config.rpcUrl = "https://testnet-tezos.giganode.io/";
     config.network = NetworkType.FLORENCENET;
+    break;
+  case Network.SANDBOX:
+    config.rpcUrl = "http://localhost:8732/";
+    config.network = NetworkType.CUSTOM;
     break;
 }
 
