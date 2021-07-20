@@ -45,6 +45,7 @@ const ConnectButton = ({
       const userAddress = await wallet.getPKH();
       await setup(userAddress);
       setBeaconConnection(true);
+      Tezos.setWalletProvider(wallet);
       Tracker.trackEvent('connect_success', { type: 'wallet'});
     } catch (error) {
       console.log(error);

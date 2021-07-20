@@ -23,9 +23,11 @@ const config = {
     usd_24h_vol: 0,
     usd_market_cap: 0,
   },
+  storageLimitSurcharge: 1.2, // multiplier
+  lpTokenDecimals: 1000000
 };
 
-const network = Network.SANDBOX;
+const network = Network.FLORENCENET;
 
 switch (network as Network) {
   case Network.MAINNET:
@@ -33,7 +35,7 @@ switch (network as Network) {
     config.network = NetworkType.MAINNET;
     break;
   case Network.FLORENCENET:
-    config.rpcUrl = "https://testnet-tezos.giganode.io/";
+    config.rpcUrl = "https://rpc.florence.tzstats.com/";
     config.network = NetworkType.FLORENCENET;
     break;
   case Network.SANDBOX:
