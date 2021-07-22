@@ -5,11 +5,11 @@ import config from "./../config";
 
 interface ButtonProps {
   wallet: BeaconWallet | null;
-  setPublicToken: Dispatch<SetStateAction<string | null>>;
+  setPublicToken?: Dispatch<SetStateAction<string | null>>;
   setUserAddress: Dispatch<SetStateAction<string>>;
   setWallet: Dispatch<SetStateAction<any>>;
   setTezos: Dispatch<SetStateAction<TezosToolkit>>;
-  setBeaconConnection: Dispatch<SetStateAction<boolean>>;
+  setBeaconConnection?: Dispatch<SetStateAction<boolean>>;
 }
 
 const DisconnectButton = ({
@@ -25,8 +25,8 @@ const DisconnectButton = ({
     setWallet(null);
     const tezosTK = new TezosToolkit(config.rpcUrl);
     setTezos(tezosTK);
-    setBeaconConnection(false);
-    setPublicToken(null);
+    if (setBeaconConnection) setBeaconConnection(false);
+    if (setPublicToken) setPublicToken(null);
 
     if (wallet) {
       await wallet.client.removeAllAccounts();

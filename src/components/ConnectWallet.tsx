@@ -11,9 +11,10 @@ type ButtonProps = {
   Tezos: TezosToolkit;
   setWallet: Dispatch<SetStateAction<any>>;
   setUserAddress: Dispatch<SetStateAction<string>>;
-  setBeaconConnection: Dispatch<SetStateAction<boolean>>;
-  setPublicToken: Dispatch<SetStateAction<string | null>>;
+  setBeaconConnection?: Dispatch<SetStateAction<boolean>>;
+  setPublicToken?: Dispatch<SetStateAction<string | null>>;
   wallet: BeaconWallet;
+  showNano?: boolean;
 };
 
 const ConnectButton = ({
@@ -22,7 +23,8 @@ const ConnectButton = ({
   setUserAddress,
   setBeaconConnection,
   setPublicToken,
-  wallet
+  wallet,
+  showNano = true,
 }: ButtonProps): JSX.Element => {
   const [loadingWallet, setLoadingWallet] = useState<boolean>(false);
   const [loadingNano, setLoadingNano] = useState<boolean>(false);
@@ -44,7 +46,7 @@ const ConnectButton = ({
       // gets user's address
       const userAddress = await wallet.getPKH();
       await setup(userAddress);
-      setBeaconConnection(true);
+      if (setBeaconConnection) setBeaconConnection(true);
       Tezos.setWalletProvider(wallet);
       Tracker.trackEvent('connect_success', { type: 'wallet'});
     } catch (error) {
@@ -85,7 +87,9 @@ const ConnectButton = ({
             handler: defaultEventCallbacks.PAIR_INIT
           },
           [BeaconEvent.PAIR_SUCCESS]: {
-            handler: data => setPublicToken(data.publicKey)
+            handler: data => {
+              if (setPublicToken) setPublicToken(data.publicKey)
+            }
           }
         }
       });
@@ -96,7 +100,7 @@ const ConnectButton = ({
       if (activeAccount) {
         const userAddress = await wallet.getPKH();
         await setup(userAddress);
-        setBeaconConnection(true);
+        if (setBeaconConnection) setBeaconConnection(true);
       }
     })();
     // eslint-disable-next-line
@@ -116,17 +120,19 @@ const ConnectButton = ({
         )}
       </button>
 
-      <button className="button long-submit-button w-button secondary" id="w-node-cac1c974-81c3-bb3d-28aa-2c88c2fd1725-856d06c6" disabled={loadingNano} onClick={connectNano}>
-        {loadingNano ? (
-          <span>
-            Loading, please wait
-          </span>
-        ) : (
-          <span>
-            Connect Ledger Nano
-          </span>
-        )}
-      </button>
+      { showNano &&
+        <button className="button long-submit-button w-button secondary" id="w-node-cac1c974-81c3-bb3d-28aa-2c88c2fd1725-856d06c6" disabled={loadingNano} onClick={connectNano}>
+          {loadingNano ? (
+            <span>
+              Loading, please wait
+            </span>
+          ) : (
+            <span>
+              Connect Ledger Nano
+            </span>
+          )}
+        </button>
+      }
     </>
   );
 };

@@ -1,26 +1,80 @@
-import React, { useEffect, useCallback, useState } from "react";
 import {
   ContractAbstraction,
   ContractMethod,
   MichelsonMap,
   TezosToolkit,
   UnitValue,
-  Wallet,
+  Wallet
 } from "@taquito/taquito";
-// import "./App.css";
+import BigNumber from "bignumber.js";
+import React, { useCallback, useEffect, useState } from "react";
 import ConnectButton from "./components/ConnectWallet";
+import DepositModal from './components/DepositModal';
 import DisconnectButton from "./components/DisconnectWallet";
-import qrcode from "qrcode-generator";
-import StakingForm from "./components/StakingForm";
+import WithdrawModal from './components/WithdrawModal';
 import config from "./config";
 import Publish from "./publish";
-import { bytes2Char } from "@taquito/utils";
-import BigNumber from "bignumber.js";
 
 interface FarmProps {
   farmContract: string | any;
   swapContract: string | any;
 }
+
+interface FarmType {
+  startDate: Date,
+  endDate: Date,
+  totalStaked?: BigNumber,
+  APR?: BigNumber,
+  personalStake?: BigNumber,
+  personalUnclaimedReward?: BigNumber,
+  fromSymbol: string,
+  fromDecimals: number,
+  toSymbol: string,
+  toDecimals: number,
+}
+
+let initialFarm: FarmType = {
+  startDate: new Date('01 Jul 2021 20:00:00 UTC'),
+  endDate: new Date('01 Sep 2021 20:00:00 UTC'),
+  totalStaked: undefined,
+  APR: undefined,
+  personalStake: undefined,
+  personalUnclaimedReward: undefined,
+  fromSymbol: "CVZA-QP",
+  fromDecimals: 6,
+  toSymbol: "CVZA",
+  toDecimals: 6,
+};
+
+type delegatorRecord = {
+  lpTokenBalance: BigNumber;
+  accumulatedRewardPerShareStart: BigNumber;
+};
+
+type address = string;
+interface farmContractStorage {
+  farm: {
+    lastBlockUpdate: BigNumber;
+    accumulatedRewardPerShare: BigNumber;
+    plannedRewards: {
+      rewardPerBlock: BigNumber;
+      totalBlocks: BigNumber;
+    };
+    claimedRewards: {
+      unpaid: BigNumber;
+      paid: BigNumber;
+    };
+  };
+  farmLpTokenBalance: BigNumber;
+  delegators: MichelsonMap<address, delegatorRecord>;
+  addresses: {
+    admin: address;
+    lpTokenContract: address;
+    rewardTokenContract: address;
+    rewardReserve: address;
+  };
+}
+
 
 const Farm = ({ farmContract, swapContract }: FarmProps) => {
   const [Tezos, setTezos] = useState<TezosToolkit>(
@@ -30,22 +84,23 @@ const Farm = ({ farmContract, swapContract }: FarmProps) => {
   const [farmContractInstance, setFarmContractInstance] = useState<
     ContractAbstraction<Wallet> | undefined
   >(undefined);
-  const [publicToken, setPublicToken] = useState<string | null>("");
   const [wallet, setWallet] = useState<any>(null);
   const [userAddress, setUserAddress] = useState<string>("");
   const [userBalance, setUserBalance] = useState<number>(-1);
   const [userTokenBalance, setUserTokenBalance] = useState<number>(-1);
   const [storage, setStorage] = useState<any>();
-  const [copiedPublicToken, setCopiedPublicToken] = useState<boolean>(false);
-  const [beaconConnection, setBeaconConnection] = useState<boolean>(false);
-  const [showTokenomics, setShowTokenomics] = useState<boolean>(false);
-  const [showDisclaimer, setShowDisclaimer] = useState<boolean>(false);
   const [tokenDetails, setTokenDetails] = useState<any>();
-  const [farm, setFarm] = useState<any>({});
+  const [farm, setFarm] = useState<FarmType>(initialFarm);
   const [farmStorage, setFarmStorage] = useState<farmContractStorage>();
-  const [depositValue, setDepositValue] = useState<string>("0");
-  const [unstakeValue, setUnstakeValue] = useState<string>("0");
+  const [depositValue, setDepositValue] = useState<string>("0.00");
+  const [unstakeValue, setUnstakeValue] = useState<string>("0.00");
   const [hasLpToken, setHasLpToken] = useState<boolean>(false);
+  const [depoiting, setDepoiting] = useState<boolean>(false);
+  const [claiming, setClaiming] = useState<boolean>(false);
+  const [withdrawing, setWithdrawing] = useState<boolean>(false);
+  const [exiting, setExiting] = useState<boolean>(false);
+  const [showDepositModal, setShowDepositModal] = useState<boolean>(false);
+  const [showWithdrawModal, setShowWithdrawModal] = useState<boolean>(false);
 
   // creates contract instance
   useEffect(() => {
@@ -66,19 +121,9 @@ const Farm = ({ farmContract, swapContract }: FarmProps) => {
       setFarmStorage(newFarmStorage);
     }
 
-    let farm = {
-      startDate: "July 1st 2021",
-      endDate: "September 1st 2021",
-      totalStaked: "0",
-      APR: "0",
-      personalStake: "0",
-      personalUnclaimedReward: "0",
-    };
-
     async function init() {
       await initContract();
       await initFarmContract();
-      await setFarm(farm);
     }
     init();
   }, [Tezos.wallet, farmContract, userAddress]);
@@ -90,40 +135,29 @@ const Farm = ({ farmContract, swapContract }: FarmProps) => {
   }, [userTokenBalance]);
 
   useEffect(() => {
-    let updatedFarm = farm;
-    async function setPersonalStake() {
-      const personalStake = await getPersonalStake(farmStorage!);
-      updatedFarm.personalStake = personalStake;
-    }
-    async function setPersonalUnclaimedReward() {
-      const personalUnclaimedReward = await delegatorReward();
-      updatedFarm.personalUnclaimedReward = personalUnclaimedReward;
-    }
     async function initUser() {
       if (farmStorage) {
-        await setPersonalStake();
-        await setPersonalUnclaimedReward();
-        //await setFarm(updatedFarm);
+        const update = {
+          personalStake: await getPersonalStake(farmStorage),
+          personalUnclaimedReward: await delegatorReward(),
+        }
+        // update the current version of farm
+        setFarm((farm) => Object.assign({}, farm, update));
       }
     }
     initUser();
   }, [farmStorage]);
 
   useEffect(() => {
-    async function setTotalStaked() {
-      farm.totalStaked = await getTotalStaked();
-    }
-
-    async function setAPR() {
-      farm.APR = await estimateAPR(farmStorage!);
-    }
-
     async function initFarmStats() {
       if (farmStorage) {
-        await setTotalStaked();
-        await setAPR();
+        const update = {
+          totalStaked: await getTotalStaked(),
+          APR: await estimateAPR(farmStorage),
+        }
+        // update the current version of farm
+        setFarm((farm) => Object.assign({}, farm, update));
       }
-      setFarm(farm);
     }
     initFarmStats();
   }, [farmStorage]);
@@ -184,212 +218,11 @@ const Farm = ({ farmContract, swapContract }: FarmProps) => {
     return () => clearInterval(interval);
   }, [updateBalance, updateTokenBalance]);
 
-  const generateQrCode = (): { __html: string } => {
-    const qr = qrcode(0, "L");
-    qr.addData(publicToken || "");
-    qr.make();
 
-    return { __html: qr.createImgTag(4) };
-  };
 
-  /**
-   * Formula
-   * APR = Total LP staked expressed as reward token / yearly reward in reward token
-   *     = yearly reward / dexStorage.token_pool * LP
-   *     = (reward per block * blocks per year) / dexStorage.token_pool * LP
-   */
-  async function estimateAPR(farmStorage: farmContractStorage) {
-    //FOR TESTING PLEASE REMOVE
-    const tezos2 = new TezosToolkit("https://mainnet-tezos.giganode.io");
-    const swapContractInstance = await tezos2.contract.at(
-      "KT1F3BqwEAoa2koYX4Hz7zJ8xfGSxxAGVT8t"
-    );
-    const swapContractStorage = await swapContractInstance.storage<any>();
-
-    // PRODUCTION
-    //const swapContractStorage = storage;
-    const dexTokenPool = swapContractStorage.storage.token_pool as BigNumber;
-    const blocksPerYear = 365 * 24 * 60;
-    const APR = farmStorage.farm.plannedRewards.rewardPerBlock
-      .multipliedBy(blocksPerYear)
-      .dividedBy(dexTokenPool.multipliedBy(await getTotalStaked()))
-      .dividedBy(100) // because of decimal difference of 100 between CVZA and XTZ
-      .multipliedBy(100); // to get percentage
-
-    return APR.toFixed();
-  }
-
-  async function delegatorReward() {
-    const newContract = await Tezos.wallet.at(farmContract);
-    const newStorage = await newContract.storage<farmContractStorage>();
-    const delegatorAddress = await Tezos.wallet.pkh();
-    const delegatorRecord = await newStorage.delegators.get(delegatorAddress);
-    if (!delegatorRecord) {
-      return new BigNumber(0).toString();
-    }
-
-    const accRewardPerShareStart =
-      delegatorRecord.accumulatedRewardPerShareStart;
-    const accRewardPerShareEnd = await updateAccumulatedRewardPerShare(
-      farmStorage!
-    );
-    const accRewardPerShare = accRewardPerShareEnd.minus(
-      accRewardPerShareStart
-    );
-    const delegatorReward = accRewardPerShare.multipliedBy(
-      delegatorRecord.lpTokenBalance
-    );
-
-    // remove precision and specify max decimals of reward token
-    const rewardTokenDecimals = 1000000000;
-    const estimatedDelegatorReward = delegatorReward
-      .dividedBy(1000000 * rewardTokenDecimals)
-      .toFixed(6);
-
-    return estimatedDelegatorReward;
-  }
-
-  async function getTotalStaked() {
-    const tezos = new TezosToolkit(config.rpcUrl);
-    const farmContractInstance = await tezos.contract.at(farmContract);
-    const farmContractStorage =
-      await farmContractInstance.storage<farmContractStorage>();
-    // divided by the token decimals of the LP token
-    const totalStaked = farmContractStorage.farmLpTokenBalance
-      .dividedBy(1000000)
-      .toFixed(6);
-    // we return string because of javascript problems for really big numbers
-    return totalStaked.toString();
-  }
-
-  async function getPersonalStake(
-    farmStorage: farmContractStorage
-  ): Promise<string> {
-    const delegatorAddress = await Tezos.wallet.pkh();
-    const delegatorRecord = await farmStorage.delegators.get(delegatorAddress);
-
-    if (!delegatorRecord) {
-      return new BigNumber(0).toString();
-    }
-    const personalStake = delegatorRecord.lpTokenBalance.toString();
-
-    return personalStake;
-  }
-
-  async function deposit() {
-    // check whether there is already an allowance
-    const contractIsOperator = await hasOperator();
-
-    // TODO: read deposit value from an input field
-    // eg. 10.3 * 1,000,000 = 10,300,000
-    const depositValueBigNumber = new BigNumber(depositValue).multipliedBy(
-      config.lpTokenDecimals
-    );
-    const depositOperationPromise = depositToFarm(depositValueBigNumber);
-
-    /**
-     * Approve and then deposit
-     */
-    if (!contractIsOperator) {
-      const addOperatorTransactionPromise = tokenFA2AddOperator();
-
-      const batch = await Tezos.wallet
-        .batch()
-        .withContractCall(await addOperatorTransactionPromise)
-        .withContractCall(await depositOperationPromise);
-
-      await batch.send();
-    } else {
-    /**
-     * Only deposit
-     */
-      //   const depositStorageLimit = await estimateDepositStorageLimit(1)
-      //   const storageLimit = depositStorageLimit * storageLimitSurcharge;
-      //   const sendParameters = {
-      //     amount: 0,
-      //     storageLimit: storageLimit
-      //   };
-
-      await (await depositOperationPromise).send();
-    }
-  }
-
-  async function tokenFA2AddOperator() {
-    const operationPromise: Promise<ContractMethod<Wallet>> =
-      contract.methods.update_operators([
-        {
-          add_operator: {
-            owner: userAddress,
-            operator: farmContractInstance!.address,
-          },
-        },
-      ]);
-
-    return operationPromise;
-  }
-
-  async function estimateTokenFA2AddOperator() {
-    const addOperatorTransferParameters = contract.methods
-      .update_operators([
-        {
-          add_operator: {
-            owner: userAddress,
-            operator: farmContractInstance!.address,
-          },
-        },
-      ])
-      .toTransferParams();
-    const addOperatorEstimate = await Tezos.estimate.transfer(
-      addOperatorTransferParameters
-    );
-    const addOperatorStorageLimit = addOperatorEstimate.storageLimit;
-
-    return addOperatorStorageLimit;
-  }
-
-  async function depositToFarm(amount: BigNumber) {
-    const depositOperationPromise =
-      farmContractInstance!.methods.deposit(amount);
-
-    return depositOperationPromise;
-  }
-
-  async function estimateDepositStorageLimit(amount: BigNumber) {
-    const depositTransferParameters = farmContractInstance!.methods
-      .deposit(amount)
-      .toTransferParams({});
-    const depositEstimate = await Tezos.estimate.transfer(
-      depositTransferParameters
-    );
-    const depositEstimateStorageLimit = depositEstimate.storageLimit;
-
-    return depositEstimateStorageLimit;
-  }
-
-  async function estimateStorageLimitClaimAndUnstake(amount: BigNumber) {
-    const withdrawOperationTransferParameters = farmContractInstance!.methods
-      .withdraw(amount)
-      .toTransferParams();
-    const withdrawEstimate = await Tezos.estimate.transfer(
-      withdrawOperationTransferParameters
-    );
-    const withdrawStorageLimit = withdrawEstimate.storageLimit;
-    return withdrawStorageLimit;
-  }
-
-  async function claimAndUnstake() {
-    const amount = new BigNumber(unstakeValue).multipliedBy(
-      config.lpTokenDecimals
-    );
-    // const claimAndUnstakeStorageLimit =
-    //   await estimateStorageLimitClaimAndUnstake(amount);
-    // const storageLimit =
-    //   claimAndUnstakeStorageLimit * config.storageLimitSurcharge;
-    // const transferParameters = {
-    //   storageLimit: storageLimit,
-    // };
-    return farmContractInstance!.methods.withdraw(amount).send();
-  }
+  /////////
+  /// Helpers
+  ///////// 
 
   /**
    * This function checks whether the user has already given an allowance to the farm.
@@ -416,27 +249,49 @@ const Farm = ({ farmContract, swapContract }: FarmProps) => {
     return allowances.includes(farmContractInstance!.address);
   }
 
-  async function estimateClaimStorage() {
-    const claimOperationTransferParameters = farmContractInstance!.methods
-      .claim(UnitValue)
-      .toTransferParams();
-    console.log(Tezos);
-    const claimEstimate = await Tezos.estimate.transfer(
-      claimOperationTransferParameters
-    );
-    const claimStorageLimit = claimEstimate.storageLimit;
-    return claimStorageLimit;
+  function tokenFA2AddOperator() {
+    const operationPromise: Promise<ContractMethod<Wallet>> =
+      contract.methods.update_operators([
+        {
+          add_operator: {
+            owner: userAddress,
+            operator: farmContractInstance!.address,
+          },
+        },
+      ]);
+
+    return operationPromise;
   }
 
-  async function claim() {
-    // increasing storageLimit programmatically is optional
-    // const claimStorageLimit = await estimateClaimStorage();
-    // const storageLimit = claimStorageLimit * config.storageLimitSurcharge;
-    // const transferParameters = {
-    //   storageLimit: storageLimit,
-    // };
 
-    await farmContractInstance!.methods.claim(UnitValue).send(); // remove transferParameters for default storageLimit estimate
+
+  /////////
+  /// GETTERS
+  /////////  
+
+  // TODO: check if calculation is right
+  /**
+   * Formula
+   * APR = Total LP staked expressed as reward token / yearly reward in reward token
+   *     = yearly reward / dexStorage.token_pool * LP
+   *     = (reward per block * blocks per year) / dexStorage.token_pool * LP
+   */
+  async function estimateAPR(farmStorage: farmContractStorage) {
+    //FOR TESTING PLEASE REMOVE
+    const tezos2 = new TezosToolkit("https://mainnet-tezos.giganode.io");
+    const swapContractInstance = await tezos2.contract.at(
+      "KT1F3BqwEAoa2koYX4Hz7zJ8xfGSxxAGVT8t"
+    );
+    const swapContractStorage = await swapContractInstance.storage<any>();
+    const dexTokenPool = swapContractStorage.storage.token_pool as BigNumber;
+    const blocksPerYear = 365 * 24 * 60;
+    const APR = farmStorage.farm.plannedRewards.rewardPerBlock
+      .multipliedBy(blocksPerYear)
+      .dividedBy(dexTokenPool.multipliedBy(await getTotalStaked()))
+      //.dividedBy(100) // because of decimal difference of 100 between CVZA and XTZ
+      .multipliedBy(100); // to get percentage
+
+    return APR;
   }
 
   async function updateAccumulatedRewardPerShare(
@@ -469,239 +324,483 @@ const Farm = ({ farmContract, swapContract }: FarmProps) => {
     );
   }
 
+  // TODO: check if calculation is right
+  async function delegatorReward() {
+    const newContract = await Tezos.wallet.at(farmContract);
+    const newStorage = await newContract.storage<farmContractStorage>();
+    const delegatorAddress = await Tezos.wallet.pkh();
+    const delegatorRecord = await newStorage.delegators.get(delegatorAddress);
+    if (!delegatorRecord) {
+      return new BigNumber(0);
+    }
+
+    const accRewardPerShareStart = delegatorRecord.accumulatedRewardPerShareStart;
+    const accRewardPerShareEnd = await updateAccumulatedRewardPerShare(
+      farmStorage!
+    );
+    const accRewardPerShare = accRewardPerShareEnd.minus(
+      accRewardPerShareStart
+    );
+    const delegatorReward = accRewardPerShare.multipliedBy(
+      delegatorRecord.lpTokenBalance
+    );
+
+    return delegatorReward.dividedBy(10 ** farm.fromDecimals);
+  }
+
+  async function getTotalStaked() {
+    const tezos = new TezosToolkit(config.rpcUrl);
+    const farmContractInstance = await tezos.contract.at(farmContract);
+    const farmContractStorage = await farmContractInstance.storage<farmContractStorage>();
+    return farmContractStorage.farmLpTokenBalance;
+  }
+
+  async function getPersonalStake(
+    farmStorage: farmContractStorage
+  ): Promise<BigNumber> {
+    const delegatorAddress = await Tezos.wallet.pkh();
+    const delegatorRecord = await farmStorage.delegators.get(delegatorAddress);
+
+    if (!delegatorRecord) {
+      return new BigNumber(0);
+    }
+    return delegatorRecord.lpTokenBalance
+  }
+
+
+  //////////
+  /// CONTRACT INTERACTIONS
+  //////////
+
+  async function performDeposit(amount: BigNumber) {
+    // check whether there is already an allowance
+    const contractIsOperator = await hasOperator();
+    const depositOperation = farmContractInstance!.methods.deposit(amount);
+
+    if (!contractIsOperator) {
+      // Approve and then deposit
+      const addOperatorTransactionPromise = tokenFA2AddOperator();
+      const tx = await Tezos.wallet
+        .batch()
+        .withContractCall(await addOperatorTransactionPromise)
+        .withContractCall(depositOperation)
+        .send();
+      await tx.confirmation(1)
+      return tx
+    } else {
+      // Only deposit
+
+      // TODO: ???
+      //   const depositStorageLimit = await estimateDepositStorageLimit(1)
+      //   const storageLimit = depositStorageLimit * storageLimitSurcharge;
+      //   const sendParameters = {
+      //     amount: 0,
+      //     storageLimit: storageLimit
+      //   };
+
+      const tx = await depositOperation.send();
+      await tx.confirmation(1)
+      return tx
+    }
+  }
+
+  async function performWithdraw(amount: BigNumber) {
+    const tx = await farmContractInstance!.methods.withdraw(amount).send();
+    await tx.confirmation(1)
+    return tx
+  }
+
+  async function performClaim() {
+    const tx = await farmContractInstance!.methods.claim(UnitValue).send();
+    await tx.confirmation(1)
+    return tx
+  }
+
+  async function deposit() {
+    const amount = new BigNumber(depositValue).shiftedBy(farm.fromDecimals).decimalPlaces(0, BigNumber.ROUND_DOWN);
+    if (amount.isZero()) return
+
+    setDepoiting(true)
+    try {
+      await performDeposit(amount)
+
+      // update UI
+      setShowDepositModal(false)
+      setDepositValue('0.00')
+      setFarm((farm) => {
+        farm.totalStaked = farm.totalStaked?.plus(amount)
+        farm.personalStake = farm.personalStake?.plus(amount)
+        return farm
+      })
+      // TODO: refresh balances
+    } catch (e) {
+      console.error(e)
+    }
+    setDepoiting(false)
+  }
+
+  async function claim() {
+    // TODO: ???
+    // increasing storageLimit programmatically is optional
+    // const claimStorageLimit = await estimateClaimStorage();
+    // const storageLimit = claimStorageLimit * config.storageLimitSurcharge;
+    // const transferParameters = {
+    //   storageLimit: storageLimit,
+    // };
+    // remove transferParameters for default storageLimit estimate
+
+    setClaiming(true)
+    try {
+      await performClaim()
+
+      // update UI
+      setFarm((farm) => {
+        farm.personalUnclaimedReward = new BigNumber(0)
+        return farm
+      })
+    } catch (e) {
+      console.error(e)
+    }
+    setClaiming(false)
+  }
+
+  async function withdraw() {
+    const amount = new BigNumber(unstakeValue).shiftedBy(farm.fromDecimals).decimalPlaces(0, BigNumber.ROUND_DOWN);
+    if (amount.isZero()) return
+
+    setWithdrawing(true)
+    try {
+      await performWithdraw(amount)
+
+      // update UI
+      setShowWithdrawModal(false)
+      setUnstakeValue('0.00')
+      setFarm((farm) => {
+        farm.totalStaked = farm.totalStaked?.minus(amount)
+        farm.personalUnclaimedReward = new BigNumber(0)
+        farm.personalStake = farm.personalStake?.minus(amount)
+        return farm
+      })
+      // TODO: refresh balances
+    } catch (e) {
+      console.error(e)
+    }
+    setWithdrawing(false)
+  }
+
+  async function exit() {
+    // TODO: ???
+    // const claimAndUnstakeStorageLimit =
+    //   await estimateStorageLimitClaimAndUnstake(amount);
+    // const storageLimit =
+    //   claimAndUnstakeStorageLimit * config.storageLimitSurcharge;
+    // const transferParameters = {
+    //   storageLimit: storageLimit,
+    // };
+
+    const amount = farm.personalStake
+    if (!amount) return
+
+    setExiting(true)
+    try {
+      await performWithdraw(amount)
+
+      // update UI
+      setFarm((farm) => {
+        farm.totalStaked = farm.totalStaked?.minus(amount)
+        farm.personalUnclaimedReward = new BigNumber(0)
+        farm.personalStake = new BigNumber(0)
+        return farm
+      })
+      // TODO: refresh balances
+    } catch (e) {
+      console.error(e)
+    }
+    setExiting(false)
+  }
+
+
+  /// OTHER
+
+  // async function estimateTokenFA2AddOperator() {
+  //   const addOperatorTransferParameters = contract.methods
+  //     .update_operators([
+  //       {
+  //         add_operator: {
+  //           owner: userAddress,
+  //           operator: farmContractInstance!.address,
+  //         },
+  //       },
+  //     ])
+  //     .toTransferParams();
+  //   const addOperatorEstimate = await Tezos.estimate.transfer(
+  //     addOperatorTransferParameters
+  //   );
+  //   const addOperatorStorageLimit = addOperatorEstimate.storageLimit;
+
+  //   return addOperatorStorageLimit;
+  // }
+
+  // async function estimateDepositStorageLimit(amount: BigNumber) {
+  //   const depositTransferParameters = farmContractInstance!.methods
+  //     .deposit(amount)
+  //     .toTransferParams({});
+  //   const depositEstimate = await Tezos.estimate.transfer(
+  //     depositTransferParameters
+  //   );
+  //   const depositEstimateStorageLimit = depositEstimate.storageLimit;
+
+  //   return depositEstimateStorageLimit;
+  // }
+
+  // async function estimateStorageLimitClaimAndUnstake(amount: BigNumber) {
+  //   const withdrawOperationTransferParameters = farmContractInstance!.methods
+  //     .withdraw(amount)
+  //     .toTransferParams();
+  //   const withdrawEstimate = await Tezos.estimate.transfer(
+  //     withdrawOperationTransferParameters
+  //   );
+  //   const withdrawStorageLimit = withdrawEstimate.storageLimit;
+  //   return withdrawStorageLimit;
+  // }
+
+
+  // async function estimateClaimStorage() {
+  //   const claimOperationTransferParameters = farmContractInstance!.methods
+  //     .claim(UnitValue)
+  //     .toTransferParams();
+  //   console.log(Tezos);
+  //   const claimEstimate = await Tezos.estimate.transfer(
+  //     claimOperationTransferParameters
+  //   );
+  //   const claimStorageLimit = claimEstimate.storageLimit;
+  //   return claimStorageLimit;
+  // }
+
+
   return (
     <div className="section bg-gray-1">
-      <div className="container">
-        <div className="farm">
-          <div className="farm-title-wrapper">
-            <div className="farm-titel">
-              <div className="farm-titel-inlay">
-                <div>
-                  <div>Total Staked</div>
-                  <div id="totalStaked" className="totalstaked">
-                    {farm.totalStaked}
-                  </div>
-                </div>
-                <div className="align-right">
-                  <div>Farming APR</div>
-                  <div id="farmApy" className="farmapy">
-                    {farm.APR}%
-                  </div>
-                </div>
-                <div
-                  data-w-id="e799ee40-c2cf-545d-1c77-b15068d00b93"
-                  data-animation-type="lottie"
-                  data-src="documents/lf30_editor_qdh1yqpy.json"
-                  data-loop="1"
-                  data-direction="1"
-                  data-autoplay="1"
-                  data-is-ix2-target="0"
-                  data-renderer="svg"
-                  data-default-duration="1.6"
-                  data-duration="1.6"
-                  className="lottie-animation-copy"
-                ></div>
-              </div>
-            </div>
-            <div className="farm-title-coins">
-              <div className="coin-top">
-                <div className="farm-coin">
-                  <img
-                    src="images/1_ZdaWerzN9F7oIyhZEwcRqQ-1.jpeg"
-                    loading="lazy"
-                    id="tokenImageInput"
-                    alt=""
-                  />
-                </div>
-              </div>
-              <div>
-                <div className="farm-coin">
-                  <img
-                    src="images/CVCA-COIN-ico-256.png"
-                    loading="lazy"
-                    id="tokenImageOutput"
-                    alt=""
-                  />
-                </div>
-              </div>
-            </div>
-          </div>
-          <h5>
-            Deposit{" "}
-            <span id="tokenNameInput" className="tokennameinput">
-              $CVZA
-            </span>{" "}
-            to earn more
-            <span id="tokenNameOutput" className="tokennameoutput">
-              $CVZA
-            </span>
-          </h5>
-          <div id="active" className="text-pill-tiny green">
-            <div>Active</div>
-          </div>
-          <div id="ended" className="text-pill-tiny red">
-            <div>Ended</div>
-          </div>
-          <div className="w-layout-grid farm-grid">
-            <div className="label">Start date</div>
-            <div id="startDate" className="farm-startdate">
-              {farm.startDate}
-            </div>
-            <div className="label">End date</div>
-            <div id="endDate" className="farm-enddate">
-              {farm.endDate}
-            </div>
-            <div className="label">Your stake</div>
-            <div id="yourStake" className="farm-yourstake">
-              ${farm.personalStake}
-            </div>
-            <div className="label">Unclaimed $CVZA reward</div>
-            <div id="cvzaReward" className="farm-cvzareward">
-              ${farm.personalUnclaimedReward}
-            </div>
-          </div>
-          {!userAddress && (
-            <ConnectButton
-              Tezos={Tezos}
-              setPublicToken={setPublicToken}
-              setWallet={setWallet}
-              setUserAddress={setUserAddress}
-              setBeaconConnection={setBeaconConnection}
-              wallet={wallet}
-            />
-          )}
+      {/* Disconnect */}
+      {userAddress && (
+        <DisconnectButton
+          wallet={wallet}
+          setUserAddress={setUserAddress}
+          setWallet={setWallet}
+          setTezos={setTezos}
+        />
+      )}
 
-          {/* Disconnect */}
-          {userAddress && (
-            <DisconnectButton
-              wallet={wallet}
-              setPublicToken={setPublicToken}
-              setUserAddress={setUserAddress}
-              setWallet={setWallet}
-              setTezos={setTezos}
-              setBeaconConnection={setBeaconConnection}
-            />
-          )}
-        </div>
-        {userAddress && (
-          <div className="w-layout-grid">
-            <button
-              id="deposit"
-              onClick={() => deposit()}
-              className="farm-buttons active w-node-a0b00265-cc69-ecc0-27bf-e20a6cfc0215-8f74eee8 w-inline-block"
-            >
-              <div className="button-label-main">Deposit</div>
-              <div className="tiny-text _50">
-                LP–<span className="tokennameinput">$CVZA</span>–
-                <span className="tokennameoutput">$WSTD</span>
+      <div className="container">
+        <div className="wrapper" style={{ position: 'relative' }}>
+          <div className="farm">
+            <div className="farm-title-wrapper">
+              <div className="farm-titel">
+                <div className="farm-titel-inlay">
+                  <div style={{textAlign: 'left'}}>
+                    <div>Total Staked</div>
+                    <div id="totalStaked" className="totalstaked">
+                      {farm.totalStaked?.shiftedBy(-farm.fromDecimals).toFixed(2)}&nbsp;${farm.fromSymbol}
+                    </div>
+                  </div>
+                  <div className="align-right">
+                    <div>Farming APR</div>
+                    <div id="farmApy" className="farmapy">
+                      {farm.APR?.toFixed(2)}%
+                    </div>
+                  </div>
+                  <div
+                    data-w-id="e799ee40-c2cf-545d-1c77-b15068d00b93"
+                    data-animation-type="lottie"
+                    data-src="documents/lf30_editor_qdh1yqpy.json"
+                    data-loop="1"
+                    data-direction="1"
+                    data-autoplay="1"
+                    data-is-ix2-target="0"
+                    data-renderer="svg"
+                    data-default-duration="1.6"
+                    data-duration="1.6"
+                    className="lottie-animation-copy"
+                  ></div>
+                </div>
               </div>
-            </button>
-            <button
-              id="claim"
-              className="farm-buttons w-node-a43de16b-cb89-3d9f-34d1-dd123bfd99ee-8f74eee8 w-inline-block"
-            >
-              <div className="button-label-main" onClick={() => claim()}>
-                Claim
-              </div>
-              <div className="tiny-text _50">
-                <span className="tokennameinput">$CVZA</span> and{" "}
-                <span className="tokennameoutput">$WSTD</span> reward
-              </div>
-            </button>
-            <button
-              id="withdraw"
-              className="farm-buttons w-node-_58d63a0e-4a37-39e2-c3d7-2d81eefd4bbe-8f74eee8 w-inline-block"
-            >
-              <div
-                className="button-label-main"
-                onClick={() => claimAndUnstake()}
-              >
-                Claim & Unstake
-              </div>
-              <div className="tiny-text _50">
-                LP–<span className="tokennameinput">$CVZA</span>–
-                <span className="tokennameoutput">$WSTD</span>
-              </div>
-            </button>
-          </div>
-        )}
-        <div className="div-block-11">
-          <input
-            type="number"
-            className="form-farm w-input"
-            name="depositAmount"
-            data-name="depositAmount"
-            placeholder="0.00"
-            id="depositAmount-2"
-            onChange={(e) => setDepositValue(e.target.value)}
-          />
-          <div className="div-block-18">
-            <div>Pool Token to deposit</div>
-            <div id="depositEstimateUsd" className="small-text align-right">
-              {" "}
-              ≈ $0.00
-            </div>
-          </div>
-          <div className="div-block-17">
-            <div className="div-block-19">
-              <div className="farm-coin small coin-left">
-                <img
-                  src="images/1_ZdaWerzN9F7oIyhZEwcRqQ-1.jpeg"
-                  loading="lazy"
-                  id="tokenImageInput"
-                  alt=""
-                />
-              </div>
-              <div className="farm-coin small coin-right">
-                <img
-                  src="images/CVCA-COIN-ico-256.png"
-                  loading="lazy"
-                  id="tokenImageOutput"
-                  alt=""
-                />
-                <div className="label">Pool Token</div>
+              <div className="farm-title-coins">
+                <div className="coin-top">
+                  <div className="farm-coin">
+                    <img
+                      src="https://uploads-ssl.webflow.com/6091079111aa5aff3f19582d/6092c5a84ac959603b28b19c_1_ZdaWerzN9F7oIyhZEwcRqQ%20(1).jpeg"
+                      loading="lazy"
+                      id="tokenImageInput"
+                      alt=""
+                    />
+                  </div>
+                </div>
+                <div>
+                  <div className="farm-coin">
+                    <img
+                      src="https://uploads-ssl.webflow.com/6091079111aa5aff3f19582d/60911d04b9836a75b1dfa271_CVCA-COIN-ico-256.png"
+                      loading="lazy"
+                      id="tokenImageOutput"
+                      alt=""
+                    />
+                  </div>
+                </div>
               </div>
             </div>
-          </div>
-        </div>
-        <div className="div-block-11">
-          <input
-            type="number"
-            className="form-farm w-input"
-            name="depositAmount"
-            data-name="depositAmount"
-            placeholder="0.00"
-            id="depositAmount-2"
-            onChange={(e) => setUnstakeValue(e.target.value)}
-          />
-          <div className="div-block-18">
-            <div>Pool Token to Unstake</div>
-            <div id="depositEstimateUsd" className="small-text align-right">
-              {" "}
-              ≈ $0.00
+            <h5>
+              Deposit
+              &nbsp;
+              <span id="tokenNameInput" className="tokennameinput">
+                ${farm.fromSymbol}
+              </span>
+              &nbsp;
+              to earn
+              &nbsp;
+              <span id="tokenNameOutput" className="tokennameoutput">
+                ${farm.toSymbol}
+              </span>
+            </h5>
+
+            {Date.now() > farm.endDate.getTime() ? (
+              <div id="ended" className="text-pill-tiny red">
+                <div>Ended</div>
+              </div>
+            ) : (
+              <div id="active" className="text-pill-tiny green">
+                <div>Active</div>
+              </div>
+            )}
+
+            <div className="w-layout-grid farm-grid">
+              <div className="label">Start date</div>
+              <div id="startDate" className="farm-startdate">
+                {farm.startDate.toUTCString()}
+              </div>
+              <div className="label">End date</div>
+              <div id="endDate" className="farm-enddate">
+                {farm.endDate.toUTCString()}
+              </div>
+              <div className="label">Your stake (${farm.fromSymbol})</div>
+              <div id="yourStake" className="farm-yourstake">
+                {farm.personalStake?.shiftedBy(-farm.fromDecimals).toFixed(2)}
+              </div>
+              <div className="label">Unclaimed reward (${farm.toSymbol})</div>
+              <div id="cvzaReward" className="farm-cvzareward">
+                {farm.personalUnclaimedReward?.shiftedBy(-farm.toDecimals).toFixed(2)}
+              </div>
             </div>
-          </div>
-          <div className="div-block-17">
-            <div className="div-block-19">
-              <div className="farm-coin small coin-left">
-                <img
-                  src="images/1_ZdaWerzN9F7oIyhZEwcRqQ-1.jpeg"
-                  loading="lazy"
-                  id="tokenImageInput"
-                  alt=""
+
+            {!userAddress && (
+              <div className="w-layout-grid">
+                <ConnectButton
+                  Tezos={Tezos}
+                  setWallet={setWallet}
+                  setUserAddress={setUserAddress}
+                  wallet={wallet}
+                  showNano={false}
                 />
               </div>
-              <div className="farm-coin small coin-right">
-                <img
-                  src="images/CVCA-COIN-ico-256.png"
-                  loading="lazy"
-                  id="tokenImageOutput"
-                  alt=""
-                />
-                <div className="label">Pool Token</div>
+            )}
+
+            {userAddress && (
+              <div className="w-layout-grid">
+                {/* Deposit */}
+                <button
+                  id="deposit"
+                  onClick={() => setShowDepositModal(true)}
+                  disabled={depoiting}
+                  className={
+                    'farm-buttons w-node-_58d63a0e-4a37-39e2-c3d7-2d81eefd4bbe-8f74eee8 w-inline-block'
+                    + (!depoiting ? ' active' : '')
+                  }
+                >
+                  <div className="button-label-main">
+                    {depoiting ? 'Depositing...' : 'Deposit'}
+                  </div>
+                  <div className="tiny-text _50">
+                    <span className="tokennameinput">${farm.fromSymbol}</span>
+                  </div>
+                </button>
+
+                {/* Claim */}
+                <button
+                  id="claim"
+                  onClick={() => claim()}
+                  disabled={claiming || farm.personalUnclaimedReward?.isZero()}
+                  className={
+                    'farm-buttons w-node-_58d63a0e-4a37-39e2-c3d7-2d81eefd4bbe-8f74eee8 w-inline-block'
+                    + (farm.personalUnclaimedReward && !farm.personalUnclaimedReward.isZero() && !claiming ? ' active' : '')
+                  }
+                >
+                  <div className="button-label-main">
+                    {claiming ? 'Claiming...' : 'Claim'}
+                  </div>
+                  <div className="tiny-text _50">
+                    <span className="tokennameoutput">${farm.toSymbol}</span> reward
+                  </div>
+                </button>
+
+                {/* Withdraw */}
+                <button
+                  id="withdraw"
+                  onClick={() => setShowWithdrawModal(true)}
+                  disabled={withdrawing || farm.personalStake?.isZero()}
+                  className={
+                    'farm-buttons w-node-_58d63a0e-4a37-39e2-c3d7-2d81eefd4bbe-8f74eee8 w-inline-block '
+                    + (farm.personalStake && !farm.personalStake.isZero() && !withdrawing ? 'active' : '')
+                  }
+                >
+                  <div className="button-label-main">
+                    {withdrawing ? 'Withdrawing...' : 'Withdraw'}
+                  </div>
+                  <div className="tiny-text _50">
+                    <span className="tokennameinput">${farm.fromSymbol}</span>
+                  </div>
+                </button>
+
+                {/* Exit */}
+                <button
+                  id="exit"
+                  onClick={() => exit()}
+                  disabled={exiting || farm.personalStake?.isZero()}
+                  className={
+                    'farm-buttons w-node-_58d63a0e-4a37-39e2-c3d7-2d81eefd4bbe-8f74eee8 w-inline-block '
+                    + (farm.personalStake && !farm.personalStake.isZero() && !exiting ? 'active' : '')
+                  }
+                >
+                  <div className="button-label-main">
+                    {exiting ? 'Exiting...' : 'Exit'}
+                  </div>
+                  <div className="tiny-text _50">
+                    Withdraw and claim
+                  </div>
+                </button>
               </div>
-            </div>
+            )}
           </div>
+
+          {showDepositModal &&
+            <DepositModal
+              hideDepositModal={() => setShowDepositModal(false)}
+              depositValue={depositValue}
+              setDepositValue={setDepositValue}
+              personalStake={(farm.personalStake || new BigNumber(0)).shiftedBy(-farm.fromDecimals)}
+              deposit={deposit}
+              depositing={depoiting}
+              symbol={farm.fromSymbol}
+            ></DepositModal>
+          }
+
+          {showWithdrawModal &&
+            <WithdrawModal
+              hideWithdrawModal={() => setShowWithdrawModal(false)}
+              withdrawValue={unstakeValue}
+              setWithdrawValue={setUnstakeValue}
+              personalStake={(farm.personalStake || new BigNumber(0)).shiftedBy(-farm.fromDecimals)}
+              withdraw={withdraw}
+              withdrawing={withdrawing}
+              symbol={farm.fromSymbol}
+            ></WithdrawModal>
+          }
         </div>
       </div>
     </div>
@@ -709,32 +808,3 @@ const Farm = ({ farmContract, swapContract }: FarmProps) => {
 };
 
 export default Farm;
-
-export type delegatorRecord = {
-  lpTokenBalance: BigNumber;
-  accumulatedRewardPerShareStart: BigNumber;
-};
-
-type address = string;
-export interface farmContractStorage {
-  farm: {
-    lastBlockUpdate: BigNumber;
-    accumulatedRewardPerShare: BigNumber;
-    plannedRewards: {
-      rewardPerBlock: BigNumber;
-      totalBlocks: BigNumber;
-    };
-    claimedRewards: {
-      unpaid: BigNumber;
-      paid: BigNumber;
-    };
-  };
-  farmLpTokenBalance: BigNumber;
-  delegators: MichelsonMap<address, delegatorRecord>;
-  addresses: {
-    admin: address;
-    lpTokenContract: address;
-    rewardTokenContract: address;
-    rewardReserve: address;
-  };
-}
