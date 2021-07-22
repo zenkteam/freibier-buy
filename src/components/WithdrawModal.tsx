@@ -21,9 +21,9 @@ const WithdrawModal = ({ hideWithdrawModal, withdrawValue, setWithdrawValue, per
 
       <div className="modal" onClick={(event) => event.stopPropagation()}>
         <h3>Withdraw</h3>
-        <a id="killModal" href="#" className="link-block-2 w-inline-block" onClick={() => hideWithdrawModal()}>
+        <span id="killModal" className="link-block-2 w-inline-block" style={{cursor: 'pointer'}} onClick={() => hideWithdrawModal()}>
           <img loading="lazy" alt="" src="https://uploads-ssl.webflow.com/6091079111aa5aff3f19582d/60a2b8ec3e22ca447f4b6063_nav-close-icon.svg" />
-        </a>
+        </span>
         <div className="form-block-2 w-form">
           <form onSubmit={(event) => {withdraw(); event.preventDefault();}}>
 

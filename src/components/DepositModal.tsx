@@ -21,9 +21,9 @@ const DepositModal = ({ hideDepositModal, depositValue, setDepositValue, persona
 
       <div className="modal" onClick={(event) => event.stopPropagation()}>
         <h3>Deposit</h3>
-        <a id="killModal" href="#" className="link-block-2 w-inline-block" onClick={() => hideDepositModal()}>
+        <span id="killModal" className="link-block-2 w-inline-block" style={{cursor: 'pointer'}} onClick={() => hideDepositModal()}>
           <img loading="lazy" alt="" src="https://uploads-ssl.webflow.com/6091079111aa5aff3f19582d/60a2b8ec3e22ca447f4b6063_nav-close-icon.svg" />
-        </a>
+        </span>
         <div className="form-block-2 w-form">
           <form onSubmit={(event) => {deposit(); event.preventDefault();}}>
 

@@ -52,8 +52,8 @@ if (farmNode) {
     ReactDOM.render(
       <React.StrictMode>
         <Farm 
-          farmContract={farmNode.dataset.farmContract}
-          swapContract={farmNode.dataset.swapContract}
+          farmContractAddress={farmNode.dataset.farmContract}
+          swapContractAddress={farmNode.dataset.swapContract}
         />
       </React.StrictMode>,
       farmNode

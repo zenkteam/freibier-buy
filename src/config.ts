@@ -7,7 +7,7 @@ enum Network {
 }
 
 const config = {
-  network: NetworkType.MAINNET,
+  network: NetworkType.FLORENCENET,
   rpcUrl: "https://rpc.tzbeta.net",
   defaultTezPrice: {
     last_updated_at: 1621264908,
