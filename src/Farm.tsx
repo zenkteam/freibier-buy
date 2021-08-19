@@ -202,15 +202,6 @@ const Farm = ({ farmContractAddress, swapContractAddress }: FarmProps) => {
   }
 
   async function claim() {
-    // TODO: ???
-    // increasing storageLimit programmatically is optional
-    // const claimStorageLimit = await estimateClaimStorage();
-    // const storageLimit = claimStorageLimit * config.storageLimitSurcharge;
-    // const transferParameters = {
-    //   storageLimit: storageLimit,
-    // };
-    // remove transferParameters for default storageLimit estimate
-
     setClaiming(true)
     try {
       await performClaim(farmContractInstance!)
@@ -242,15 +233,6 @@ const Farm = ({ farmContractAddress, swapContractAddress }: FarmProps) => {
   }
 
   async function exit() {
-    // TODO: ???
-    // const claimAndUnstakeStorageLimit =
-    //   await estimateStorageLimitClaimAndUnstake(amount);
-    // const storageLimit =
-    //   claimAndUnstakeStorageLimit * config.storageLimitSurcharge;
-    // const transferParameters = {
-    //   storageLimit: storageLimit,
-    // };
-
     const amount = farm.personalStake
     if (!amount) return
 
@@ -265,65 +247,6 @@ const Farm = ({ farmContractAddress, swapContractAddress }: FarmProps) => {
     }
     setExiting(false)
   }
-
-
-  /// OTHER
-
-  // async function estimateTokenFA2AddOperator() {
-  //   const addOperatorTransferParameters = contract.methods
-  //     .update_operators([
-  //       {
-  //         add_operator: {
-  //           owner: userAddress,
-  //           operator: farmContractInstance!.address,
-  //         },
-  //       },
-  //     ])
-  //     .toTransferParams();
-  //   const addOperatorEstimate = await Tezos.estimate.transfer(
-  //     addOperatorTransferParameters
-  //   );
-  //   const addOperatorStorageLimit = addOperatorEstimate.storageLimit;
-
-  //   return addOperatorStorageLimit;
-  // }
-
-  // async function estimateDepositStorageLimit(amount: BigNumber) {
-  //   const depositTransferParameters = farmContractInstance!.methods
-  //     .deposit(amount)
-  //     .toTransferParams({});
-  //   const depositEstimate = await Tezos.estimate.transfer(
-  //     depositTransferParameters
-  //   );
-  //   const depositEstimateStorageLimit = depositEstimate.storageLimit;
-
-  //   return depositEstimateStorageLimit;
-  // }
-
-  // async function estimateStorageLimitClaimAndUnstake(amount: BigNumber) {
-  //   const withdrawOperationTransferParameters = farmContractInstance!.methods
-  //     .withdraw(amount)
-  //     .toTransferParams();
-  //   const withdrawEstimate = await Tezos.estimate.transfer(
-  //     withdrawOperationTransferParameters
-  //   );
-  //   const withdrawStorageLimit = withdrawEstimate.storageLimit;
-  //   return withdrawStorageLimit;
-  // }
-
-
-  // async function estimateClaimStorage() {
-  //   const claimOperationTransferParameters = farmContractInstance!.methods
-  //     .claim(UnitValue)
-  //     .toTransferParams();
-  //   console.log(Tezos);
-  //   const claimEstimate = await Tezos.estimate.transfer(
-  //     claimOperationTransferParameters
-  //   );
-  //   const claimStorageLimit = claimEstimate.storageLimit;
-  //   return claimStorageLimit;
-  // }
-
 
   return (
     <div className="section bg-gray-1">
@@ -428,11 +351,11 @@ const Farm = ({ farmContractAddress, swapContractAddress }: FarmProps) => {
               </div>
               <div className="label">Your stake (${farm.fromSymbol})</div>
               <div id="yourStake" className="farm-yourstake">
-                {farm.personalStake?.shiftedBy(-farm.fromDecimals).toNumber().toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 6})}
+                {farm.personalStake?.shiftedBy(-farm.fromDecimals).toNumber().toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 6 })}
               </div>
               <div className="label">Unclaimed reward (${farm.toSymbol})</div>
               <div id="cvzaReward" className="farm-cvzareward">
-                {farm.personalUnclaimedReward?.shiftedBy(-farm.toDecimals).toNumber().toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 6})}
+                {farm.personalUnclaimedReward?.shiftedBy(-farm.toDecimals).toNumber().toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 6 })}
               </div>
             </div>
 
