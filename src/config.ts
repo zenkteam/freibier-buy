@@ -1,14 +1,8 @@
 import { NetworkType } from "@airgap/beacon-sdk";
 
-enum Network {
-  MAINNET,
-  FLORENCENET,
-  SANDBOX,
-}
-
 const config = {
-  network: NetworkType.FLORENCENET,
-  rpcUrl: "https://rpc.tzbeta.net",
+  network: NetworkType.MAINNET,
+  rpcUrl: "",
   defaultTezPrice: {
     last_updated_at: 1621264908,
     usd: 5.24,
@@ -27,20 +21,15 @@ const config = {
   lpTokenDecimals: 1000000
 };
 
-const network = Network.FLORENCENET;
-
-switch (network as Network) {
-  case Network.MAINNET:
-    config.rpcUrl = "https://mainnet-tezos.giganode.io/";
-    config.network = NetworkType.MAINNET;
+switch (config.network) {
+  case NetworkType.MAINNET:
+    config.rpcUrl = "https://mainnet.api.tez.ie";
     break;
-  case Network.FLORENCENET:
+  case NetworkType.FLORENCENET:
     config.rpcUrl = "https://rpc.florence.tzstats.com/";
-    config.network = NetworkType.FLORENCENET;
     break;
-  case Network.SANDBOX:
+  case NetworkType.CUSTOM:
     config.rpcUrl = "http://localhost:8732/";
-    config.network = NetworkType.CUSTOM;
     break;
 }
 

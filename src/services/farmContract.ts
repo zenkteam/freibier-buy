@@ -39,15 +39,10 @@ export interface FarmStorageInterface {
  *     = (reward per block * blocks per year) / dexStorage.token_pool * LP
  */
 export async function estimateAPR(
-  farmStorage: FarmStorageInterface
+  farmStorage: FarmStorageInterface,
+  swapStorage: any,
 ) {
-  //FOR TESTING PLEASE REMOVE
-  const tezos2 = new TezosToolkit("https://rpc.tzbeta.net");
-  const swapContractInstance = await tezos2.contract.at(
-    "KT1F3BqwEAoa2koYX4Hz7zJ8xfGSxxAGVT8t"
-  );
-  const swapContractStorage = await swapContractInstance.storage<any>();
-  const dexTokenPool = swapContractStorage.storage.token_pool as BigNumber;
+  const dexTokenPool = swapStorage.storage.token_pool as BigNumber;
   const blocksPerYear = 365 * 24 * 60;
   const APR = farmStorage.farm.plannedRewards.rewardPerBlock
     .multipliedBy(blocksPerYear)
@@ -108,7 +103,14 @@ export async function delegatorReward(
     delegatorRecord.lpTokenBalance.shiftedBy(-6)
   );
 
-  return delegatorReward;
+  console.debug({
+    accRewardPerShareStart: accRewardPerShareStart.toString(),
+    accRewardPerShareEnd: accRewardPerShareEnd.toString(),
+    accRewardPerShare: accRewardPerShare.toString(),
+    delegatorReward: delegatorReward.toString(),
+    lpTokenBalance: delegatorRecord.lpTokenBalance.toString(),
+  })
+  return delegatorReward.isNaN() ? new BigNumber(0) : delegatorReward
 }
 
 export async function getTotalStaked(
@@ -147,7 +149,13 @@ async function hasOperator(
    * Quipuswap will have a different FA2 storage implementation
    */
   const userAddress = await Tezos.wallet.pkh();
-  const allowances = await swapStorage.tzip12.tokenOperators.get(userAddress);
+
+  // Quipuswap
+  const allowances = await swapStorage.storage.ledger.get(userAddress).allowances
+
+  // Testnet
+  //const allowances = await swapStorage.tzip12.tokenOperators.get(userAddress);
+
   if (!allowances) {
     return false;
   }
@@ -173,6 +181,7 @@ async function tokenFA2AddOperator(
       add_operator: {
         owner: userAddress,
         operator: farmContractInstance!.address,
+        token_id: 0,
       },
     },
   ]);

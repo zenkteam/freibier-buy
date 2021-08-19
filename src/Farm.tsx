@@ -1,6 +1,6 @@
 import { ContractAbstraction, TezosToolkit, Wallet } from "@taquito/taquito";
 import BigNumber from "bignumber.js";
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import ConnectButton from "./components/ConnectWallet";
 import DepositModal from './components/DepositModal';
 import DisconnectButton from "./components/DisconnectWallet";
@@ -36,7 +36,7 @@ let initialFarm: FarmType = {
   fromSymbol: "CVZA-QP",
   fromDecimals: 6,
   toSymbol: "CVZA",
-  toDecimals: 6,
+  toDecimals: 8,
 };
 
 const REFRESH_INTERVAL = 30000
@@ -47,7 +47,7 @@ const Farm = ({ farmContractAddress, swapContractAddress }: FarmProps) => {
   const [Tezos, setTezos] = useState<TezosToolkit>(new TezosToolkit(config.rpcUrl));
   const [wallet, setWallet] = useState<any>(null);
   const [userAddress, setUserAddress] = useState<string>("");
-  const [userTokenBalances, setUserTokenBalances] = useState<Array<any>>([]);
+  // const [userTokenBalances, setUserTokenBalances] = useState<Array<any>>([]);
 
   // Contracts
   const [swapContractInstance, setSwapContractInstance] = useState<ContractAbstraction<Wallet>>();
@@ -71,40 +71,34 @@ const Farm = ({ farmContractAddress, swapContractAddress }: FarmProps) => {
   ///////// 
 
   // update token balances
-  const updateTokenBalance = useCallback(() => {
-    if (userAddress) {
-      const url = `https://api.better-call.dev/v1/account/${config.network}/${userAddress}/token_balances`;
-      fetch(url)
-        .then((res) => res.json())
-        .then((res) => {
-          if (res && res.balances) {
-            setUserTokenBalances(res.balances);
-          }
-        })
-        .catch(console.error)
-    } else {
-      setUserTokenBalances([]);
-    }
-  }, [setUserTokenBalances, userAddress]);
+  // const updateTokenBalance = useCallback(() => {
+  //   if (userAddress) {
+  //     const url = `https://api.better-call.dev/v1/account/${config.network}/${userAddress}/token_balances`;
+  //     fetch(url)
+  //       .then((res) => res.json())
+  //       .then((res) => {
+  //         if (res && res.balances) {
+  //           setUserTokenBalances(res.balances);
+  //         }
+  //       })
+  //       .catch(console.error)
+  //   } else {
+  //     setUserTokenBalances([]);
+  //   }
+  // }, [setUserTokenBalances, userAddress]);
 
   // trigger update when user changes
-  useEffect(() => {
-    updateTokenBalance();
-  }, [userAddress, updateTokenBalance]);
+  // useEffect(() => {
+  //   updateTokenBalance();
+  // }, [userAddress, updateTokenBalance]);
 
   // periodically update balances
-  useEffect(() => {
-    const interval = setInterval(() => {
-      updateTokenBalance();
-    }, REFRESH_INTERVAL);
-    return () => clearInterval(interval);
-  }, [updateTokenBalance]);
-
-  // log balances
-  useEffect(() => {
-    console.log('userTokenBalances', userTokenBalances)
-  }, [userTokenBalances])
-
+  // useEffect(() => {
+  //   const interval = setInterval(() => {
+  //     updateTokenBalance();
+  //   }, REFRESH_INTERVAL);
+  //   return () => clearInterval(interval);
+  // }, [updateTokenBalance]);
 
   /////////
   /// Contracts
@@ -130,12 +124,12 @@ const Farm = ({ farmContractAddress, swapContractAddress }: FarmProps) => {
     setFarmStorage(newFarmStorage);
   }
 
-  const updateFarmState = async (tezos: TezosToolkit, storage: FarmStorageInterface) => {
+  const updateFarmState = async (tezos: TezosToolkit, storage: FarmStorageInterface, swapStorage: any) => {
     const update = {
       personalStake: await getPersonalStake(tezos, storage),
       personalUnclaimedReward: await delegatorReward(tezos, storage),
       totalStaked: await getTotalStaked(storage),
-      APR: await estimateAPR(storage),
+      APR: await estimateAPR(storage, swapStorage),
     }
     // update the current version of farm
     setFarm((farm) => Object.assign({}, farm, update));
@@ -174,9 +168,9 @@ const Farm = ({ farmContractAddress, swapContractAddress }: FarmProps) => {
 
   useEffect(() => {
     if (Tezos && farmStorage) {
-      updateFarmState(Tezos, farmStorage)
+      updateFarmState(Tezos, farmStorage, swapStorage)
     }
-  }, [Tezos, farmStorage])
+  }, [Tezos, farmStorage, swapStorage])
 
 
   //////////
@@ -250,16 +244,6 @@ const Farm = ({ farmContractAddress, swapContractAddress }: FarmProps) => {
 
   return (
     <div className="section bg-gray-1">
-      {/* Disconnect */}
-      {userAddress && (
-        <DisconnectButton
-          wallet={wallet}
-          setUserAddress={setUserAddress}
-          setWallet={setWallet}
-          setTezos={setTezos}
-        />
-      )}
-
       <div className="container">
         <div className="wrapper" style={{ position: 'relative' }}>
           <div className="farm">
@@ -351,11 +335,11 @@ const Farm = ({ farmContractAddress, swapContractAddress }: FarmProps) => {
               </div>
               <div className="label">Your stake (${farm.fromSymbol})</div>
               <div id="yourStake" className="farm-yourstake">
-                {farm.personalStake?.shiftedBy(-farm.fromDecimals).toNumber().toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 6 })}
+                {farm.personalStake?.shiftedBy(-farm.fromDecimals).toNumber().toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: farm.fromDecimals })}
               </div>
               <div className="label">Unclaimed reward (${farm.toSymbol})</div>
               <div id="cvzaReward" className="farm-cvzareward">
-                {farm.personalUnclaimedReward?.shiftedBy(-farm.toDecimals).toNumber().toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 6 })}
+                {farm.personalUnclaimedReward?.shiftedBy(-farm.toDecimals).toNumber().toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: farm.toDecimals })}
               </div>
             </div>
 
@@ -447,6 +431,14 @@ const Farm = ({ farmContractAddress, swapContractAddress }: FarmProps) => {
                     Withdraw and claim
                   </div>
                 </button>
+
+                {/* Disconnect */}
+                <DisconnectButton
+                  wallet={wallet}
+                  setUserAddress={setUserAddress}
+                  setWallet={setWallet}
+                  setTezos={setTezos}
+                />
               </div>
             )}
           </div>
