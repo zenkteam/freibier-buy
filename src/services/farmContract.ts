@@ -42,7 +42,7 @@ export async function estimateAPR(
   farmStorage: FarmStorageInterface
 ) {
   //FOR TESTING PLEASE REMOVE
-  const tezos2 = new TezosToolkit("https://mainnet-tezos.giganode.io");
+  const tezos2 = new TezosToolkit("https://rpc.tzbeta.net");
   const swapContractInstance = await tezos2.contract.at(
     "KT1F3BqwEAoa2koYX4Hz7zJ8xfGSxxAGVT8t"
   );

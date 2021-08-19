@@ -15,7 +15,7 @@ interface DepositModalProps {
 const DepositModal = ({ hideDepositModal, depositValue, setDepositValue, personalStake, deposit, depositing, symbol }: DepositModalProps) => {
 
   const value = new BigNumber(depositValue)
-  const disabled = value.isZero() || value.gt(personalStake) || depositing
+  const disabled = value.isZero() || depositing
   return (
     <div id="modalWrapper" className="modal-wrapper" style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.8)', zIndex: 10 }} onClick={() => hideDepositModal()}>
 
@@ -36,6 +36,7 @@ const DepositModal = ({ hideDepositModal, depositValue, setDepositValue, persona
                 placeholder="0.00"
                 id="depositAmount-2"
                 value={depositValue}
+                disabled={depositing}
                 onChange={(e) => setDepositValue(e.target.value)}
               />
               <div className="div-block-18">

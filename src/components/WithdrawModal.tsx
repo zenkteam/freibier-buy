@@ -36,6 +36,7 @@ const WithdrawModal = ({ hideWithdrawModal, withdrawValue, setWithdrawValue, per
                 placeholder="0.00"
                 id="depositAmount-2"
                 value={withdrawValue}
+                disabled={withdrawing}
                 onChange={(e) => setWithdrawValue(e.target.value)}
               />
               <div className="div-block-18">

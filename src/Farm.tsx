@@ -194,12 +194,7 @@ const Farm = ({ farmContractAddress, swapContractAddress }: FarmProps) => {
       // update UI
       setShowDepositModal(false)
       setDepositValue('0.00')
-      setFarm((farm) => {
-        farm.totalStaked = farm.totalStaked?.plus(amount)
-        farm.personalStake = farm.personalStake?.plus(amount)
-        return farm
-      })
-      updateFarmStorage(farmContractInstance!)
+      await updateFarmStorage(farmContractInstance!)
     } catch (e) {
       console.error(e)
     }
@@ -221,11 +216,7 @@ const Farm = ({ farmContractAddress, swapContractAddress }: FarmProps) => {
       await performClaim(farmContractInstance!)
 
       // update UI
-      setFarm((farm) => {
-        farm.personalUnclaimedReward = new BigNumber(0)
-        return farm
-      })
-      updateFarmStorage(farmContractInstance!)
+      await updateFarmStorage(farmContractInstance!)
     } catch (e) {
       console.error(e)
     }
@@ -243,13 +234,7 @@ const Farm = ({ farmContractAddress, swapContractAddress }: FarmProps) => {
       // update UI
       setShowWithdrawModal(false)
       setUnstakeValue('0.00')
-      setFarm((farm) => {
-        farm.totalStaked = farm.totalStaked?.minus(amount)
-        farm.personalUnclaimedReward = new BigNumber(0)
-        farm.personalStake = farm.personalStake?.minus(amount)
-        return farm
-      })
-      updateFarmStorage(farmContractInstance!)
+      await updateFarmStorage(farmContractInstance!)
     } catch (e) {
       console.error(e)
     }
@@ -274,13 +259,7 @@ const Farm = ({ farmContractAddress, swapContractAddress }: FarmProps) => {
       await performWithdraw(farmContractInstance!, amount)
 
       // update UI
-      setFarm((farm) => {
-        farm.totalStaked = farm.totalStaked?.minus(amount)
-        farm.personalUnclaimedReward = new BigNumber(0)
-        farm.personalStake = new BigNumber(0)
-        return farm
-      })
-      updateFarmStorage(farmContractInstance!)
+      await updateFarmStorage(farmContractInstance!)
     } catch (e) {
       console.error(e)
     }
@@ -449,11 +428,11 @@ const Farm = ({ farmContractAddress, swapContractAddress }: FarmProps) => {
               </div>
               <div className="label">Your stake (${farm.fromSymbol})</div>
               <div id="yourStake" className="farm-yourstake">
-                {farm.personalStake?.shiftedBy(-farm.fromDecimals).toFixed(2)}
+                {farm.personalStake?.shiftedBy(-farm.fromDecimals).toNumber().toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 6})}
               </div>
               <div className="label">Unclaimed reward (${farm.toSymbol})</div>
               <div id="cvzaReward" className="farm-cvzareward">
-                {farm.personalUnclaimedReward?.shiftedBy(-farm.toDecimals).toFixed(2)}
+                {farm.personalUnclaimedReward?.shiftedBy(-farm.toDecimals).toNumber().toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 6})}
               </div>
             </div>
 
