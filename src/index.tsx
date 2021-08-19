@@ -46,14 +46,20 @@ const farmNode = document.getElementById("farm");
 if (farmNode) {
   if (!farmNode.dataset.swapContract) {
     console.error('Please specify data-swap-contract for your farm.')
-  }else if(!farmNode.dataset.farmContract) {
+  } else if(!farmNode.dataset.farmContract) {
     console.error('Please specify data-farm-contract for your farm.')
+  } else if(!farmNode.dataset.startDate) {
+    console.error('Please specify data-start-date for your farm.')
+  } else if(!farmNode.dataset.endDate) {
+    console.error('Please specify data-end-date for your farm.')
   } else {
     ReactDOM.render(
       <React.StrictMode>
-        <Farm 
+        <Farm
           farmContractAddress={farmNode.dataset.farmContract}
           swapContractAddress={farmNode.dataset.swapContract}
+          startDate={farmNode.dataset.startDate}
+          endDate={farmNode.dataset.endDate}
         />
       </React.StrictMode>,
       farmNode

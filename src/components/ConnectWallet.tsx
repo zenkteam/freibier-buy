@@ -108,7 +108,7 @@ const ConnectButton = ({
 
   return (
     <>
-      <button className="button long-submit-button bg-primary-4 w-button" id="w-node-cac1c974-81c3-bb3d-28aa-2c88c2fd1725-856d06c6" onClick={connectWallet}>
+      <button className="button long-submit-button bg-primary-4 w-button" id="connectWallet" style={{width: '100%'}} onClick={connectWallet}>
         {loadingWallet ? (
           <span>
             Confirm Connection
@@ -121,7 +121,7 @@ const ConnectButton = ({
       </button>
 
       { showNano &&
-        <button className="button long-submit-button w-button secondary" id="w-node-cac1c974-81c3-bb3d-28aa-2c88c2fd1725-856d06c6" disabled={loadingNano} onClick={connectNano}>
+        <button className="button long-submit-button w-button secondary" id="connectWallet" disabled={loadingNano} onClick={connectNano}>
           {loadingNano ? (
             <span>
               Loading, please wait

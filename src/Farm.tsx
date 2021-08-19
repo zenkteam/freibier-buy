@@ -6,11 +6,13 @@ import DepositModal from './components/DepositModal';
 import DisconnectButton from "./components/DisconnectWallet";
 import WithdrawModal from './components/WithdrawModal';
 import config from "./config";
-import { delegatorReward, estimateAPR, FarmStorageInterface, getPersonalStake, getTotalStaked, performClaim, performDeposit, performWithdraw } from './services/farmContract';
+import { delegatorReward, estimateAPR, FarmStorageInterface, getPersonalMaxDeposit, getPersonalStake, getTotalStaked, performClaim, performDeposit, performWithdraw } from './services/farmContract';
 
 interface FarmProps {
-  farmContractAddress: string | any;
-  swapContractAddress: string | any;
+  farmContractAddress: string;
+  swapContractAddress: string;
+  startDate: string;
+  endDate: string;
 }
 
 interface FarmType {
@@ -18,6 +20,7 @@ interface FarmType {
   endDate: Date,
   totalStaked?: BigNumber,
   APR?: BigNumber,
+  personalMaxDeposit?: BigNumber,
   personalStake?: BigNumber,
   personalUnclaimedReward?: BigNumber,
   fromSymbol: string,
@@ -31,6 +34,7 @@ let initialFarm: FarmType = {
   endDate: new Date('01 Sep 2021 20:00:00 UTC'),
   totalStaked: undefined,
   APR: undefined,
+  personalMaxDeposit: undefined,
   personalStake: undefined,
   personalUnclaimedReward: undefined,
   fromSymbol: "CVZA-QP",
@@ -42,7 +46,7 @@ let initialFarm: FarmType = {
 const REFRESH_INTERVAL = 30000
 
 
-const Farm = ({ farmContractAddress, swapContractAddress }: FarmProps) => {
+const Farm = ({ farmContractAddress, swapContractAddress, startDate, endDate }: FarmProps) => {
   // Wallet
   const [Tezos, setTezos] = useState<TezosToolkit>(new TezosToolkit(config.rpcUrl));
   const [wallet, setWallet] = useState<any>(null);
@@ -124,10 +128,11 @@ const Farm = ({ farmContractAddress, swapContractAddress }: FarmProps) => {
     setFarmStorage(newFarmStorage);
   }
 
-  const updateFarmState = async (tezos: TezosToolkit, storage: FarmStorageInterface, swapStorage: any) => {
+  const updateFarmState = async (tezos: TezosToolkit, storage: FarmStorageInterface, swapStorage: any, user: string) => {
     const update = {
-      personalStake: await getPersonalStake(tezos, storage),
-      personalUnclaimedReward: await delegatorReward(tezos, storage),
+      personalMaxDeposit: user ? await getPersonalMaxDeposit(swapStorage, user) : new BigNumber(0),
+      personalStake: user ? await getPersonalStake(tezos, storage) : new BigNumber(0),
+      personalUnclaimedReward: user ? await delegatorReward(tezos, storage) : new BigNumber(0),
       totalStaked: await getTotalStaked(storage),
       APR: await estimateAPR(storage, swapStorage),
     }
@@ -168,10 +173,17 @@ const Farm = ({ farmContractAddress, swapContractAddress }: FarmProps) => {
 
   useEffect(() => {
     if (Tezos && farmStorage && swapStorage) {
-      updateFarmState(Tezos, farmStorage, swapStorage)
+      updateFarmState(Tezos, farmStorage, swapStorage, userAddress)
     }
-  }, [Tezos, farmStorage, swapStorage])
+  }, [Tezos, farmStorage, swapStorage, userAddress])
 
+  useEffect(() => {
+    const update = {
+      startDate: new Date(startDate),
+      endDate: new Date(endDate),
+    }
+    setFarm((farm) => Object.assign({}, farm, update));
+  }, [startDate, endDate])
 
   //////////
   /// CONTRACT INTERACTIONS
@@ -253,7 +265,7 @@ const Farm = ({ farmContractAddress, swapContractAddress }: FarmProps) => {
                   <div style={{ textAlign: 'left' }}>
                     <div>Total Staked</div>
                     <div id="totalStaked" className="totalstaked">
-                      {farm.totalStaked?.shiftedBy(-farm.fromDecimals).toFixed(2)}&nbsp;${farm.fromSymbol}
+                      {farm.totalStaked?.shiftedBy(-farm.fromDecimals).toNumber().toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: farm.fromDecimals })}&nbsp;${farm.fromSymbol}
                     </div>
                   </div>
                   <div className="align-right">
@@ -281,7 +293,7 @@ const Farm = ({ farmContractAddress, swapContractAddress }: FarmProps) => {
                 <div className="coin-top">
                   <div className="farm-coin">
                     <img
-                      src="https://uploads-ssl.webflow.com/6091079111aa5aff3f19582d/6092c5a84ac959603b28b19c_1_ZdaWerzN9F7oIyhZEwcRqQ%20(1).jpeg"
+                      src="https://uploads-ssl.webflow.com/6091079111aa5aff3f19582d/60911d04b9836a75b1dfa271_CVCA-COIN-ico-256.png"
                       loading="lazy"
                       id="tokenImageInput"
                       alt=""
@@ -291,7 +303,7 @@ const Farm = ({ farmContractAddress, swapContractAddress }: FarmProps) => {
                 <div>
                   <div className="farm-coin">
                     <img
-                      src="https://uploads-ssl.webflow.com/6091079111aa5aff3f19582d/60911d04b9836a75b1dfa271_CVCA-COIN-ico-256.png"
+                      src="https://uploads-ssl.webflow.com/6091079111aa5aff3f19582d/6092c5a84ac959603b28b19c_1_ZdaWerzN9F7oIyhZEwcRqQ%20(1).jpeg"
                       loading="lazy"
                       id="tokenImageOutput"
                       alt=""
@@ -318,20 +330,24 @@ const Farm = ({ farmContractAddress, swapContractAddress }: FarmProps) => {
               <div id="ended" className="text-pill-tiny red">
                 <div>Ended</div>
               </div>
-            ) : (
+            ) : (Date.now() > farm.startDate.getTime() ? (
               <div id="active" className="text-pill-tiny green">
                 <div>Active</div>
               </div>
-            )}
+            ) : (
+              <div id="active" className="text-pill-tiny blue">
+                <div>In Preperation</div>
+              </div>
+            ))}
 
             <div className="w-layout-grid farm-grid">
               <div className="label">Start date</div>
               <div id="startDate" className="farm-startdate">
-                {farm.startDate.toUTCString()}
+                {farm.startDate.toDateString()}
               </div>
               <div className="label">End date</div>
               <div id="endDate" className="farm-enddate">
-                {farm.endDate.toUTCString()}
+                {farm.endDate.toDateString()}
               </div>
               <div className="label">Your stake (${farm.fromSymbol})</div>
               <div id="yourStake" className="farm-yourstake">
@@ -344,7 +360,7 @@ const Farm = ({ farmContractAddress, swapContractAddress }: FarmProps) => {
             </div>
 
             {!userAddress && (
-              <div className="w-layout-grid">
+              <div className="">
                 <ConnectButton
                   Tezos={Tezos}
                   setWallet={setWallet}
@@ -415,13 +431,14 @@ const Farm = ({ farmContractAddress, swapContractAddress }: FarmProps) => {
                 </button>
 
                 {/* Exit */}
+                { false && (
                 <button
                   id="exit"
                   onClick={() => exit()}
                   disabled={exiting || farm.personalStake?.isZero()}
                   className={
                     'farm-buttons w-node-_58d63a0e-4a37-39e2-c3d7-2d81eefd4bbe-8f74eee8 w-inline-block '
-                    + (farm.personalStake && !farm.personalStake.isZero() && !exiting ? 'active' : '')
+                    + (farm.personalStake && !farm.personalStake!.isZero() && !exiting ? 'active' : '')
                   }
                 >
                   <div className="button-label-main">
@@ -431,6 +448,7 @@ const Farm = ({ farmContractAddress, swapContractAddress }: FarmProps) => {
                     Withdraw and claim
                   </div>
                 </button>
+                )}
 
                 {/* Disconnect */}
                 <DisconnectButton
@@ -448,6 +466,7 @@ const Farm = ({ farmContractAddress, swapContractAddress }: FarmProps) => {
               hideDepositModal={() => setShowDepositModal(false)}
               depositValue={depositValue}
               setDepositValue={setDepositValue}
+              personalMaxDeposit={(farm.personalMaxDeposit || new BigNumber(0)).shiftedBy(-farm.fromDecimals)}
               personalStake={(farm.personalStake || new BigNumber(0)).shiftedBy(-farm.fromDecimals)}
               deposit={deposit}
               depositing={depoiting}

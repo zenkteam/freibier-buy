@@ -131,6 +131,11 @@ export async function getPersonalStake(
   return delegatorRecord.lpTokenBalance
 }
 
+export async function getPersonalMaxDeposit(swapStorage: any, userAddress: string) {
+  const user = await swapStorage.storage.ledger.get(userAddress)
+  return user.balance
+}
+
 /**
   * This function checks whether the user has already given an allowance to the farm.
   *

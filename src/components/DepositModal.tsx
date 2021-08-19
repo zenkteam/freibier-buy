@@ -6,16 +6,17 @@ interface DepositModalProps {
   hideDepositModal: Function
   depositValue: string
   setDepositValue: Dispatch<SetStateAction<string>>
+  personalMaxDeposit: BigNumber
   personalStake: BigNumber
   deposit: Function
   depositing: boolean
   symbol: string
 }
 
-const DepositModal = ({ hideDepositModal, depositValue, setDepositValue, personalStake, deposit, depositing, symbol }: DepositModalProps) => {
+const DepositModal = ({ hideDepositModal, depositValue, setDepositValue, personalMaxDeposit, personalStake, deposit, depositing, symbol }: DepositModalProps) => {
 
   const value = new BigNumber(depositValue)
-  const disabled = value.isZero() || depositing
+  const disabled = value.isZero() || value > personalMaxDeposit || depositing
   return (
     <div id="modalWrapper" className="modal-wrapper" style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.8)', zIndex: 10 }} onClick={() => hideDepositModal()}>
 
@@ -42,29 +43,28 @@ const DepositModal = ({ hideDepositModal, depositValue, setDepositValue, persona
               <div className="div-block-18">
                 <div>Pool Token</div>
                 <div id="depositEstimateUsd" className="small-text align-right">
-                  {/* ≈ $0.00 */}
-                  {/* <span onClick={() => setDepositValue(personalStake.toString())} style={{ cursor: 'pointer' }}>MAX</span> */}
+                  <span onClick={() => setDepositValue(personalMaxDeposit.toString())} style={{ cursor: 'pointer' }}>MAX ({personalMaxDeposit.toString()})</span>
                 </div>
               </div>
               <div className="div-block-17">
                 <div className="div-block-19">
                   <div className="farm-coin small coin-left">
-                    <img loading="lazy" id="tokenImageInput" alt="" src="https://uploads-ssl.webflow.com/6091079111aa5aff3f19582d/6092c5a84ac959603b28b19c_1_ZdaWerzN9F7oIyhZEwcRqQ%20(1).jpeg" />
+                    <img loading="lazy" id="tokenImageInput" alt="" src="https://uploads-ssl.webflow.com/6091079111aa5aff3f19582d/60911d04b9836a75b1dfa271_CVCA-COIN-ico-256.png" />
                   </div>
                   <div className="farm-coin small coin-right">
-                    <img loading="lazy" id="tokenImageOutput" alt="" src="https://uploads-ssl.webflow.com/6091079111aa5aff3f19582d/60911d04b9836a75b1dfa271_CVCA-COIN-ico-256.png" />
+                    <img loading="lazy" id="tokenImageOutput" alt="" src="https://uploads-ssl.webflow.com/6091079111aa5aff3f19582d/6092c5a84ac959603b28b19c_1_ZdaWerzN9F7oIyhZEwcRqQ%20(1).jpeg" />
                     <div className="label">Pool Token</div>
                   </div>
                 </div>
               </div>
             </div>
 
-            <div className="w-layout-grid farm-grid-thirds">
+            <div className="w-layout-grid farm-grid">
               <div id="w-node-_711fc696-7ac7-e6c8-120c-6f532e8df7bf-8f74eee8" className="label big">
                 You Staked
               </div>
               <div id="TotalStaked" className="small-text align-right big w-node-_26bb2413-c0d4-5c9f-4953-309a53061659-8f74eee8">
-                {personalStake.toFixed(2)}&nbsp;${symbol}
+                {personalStake.toNumber().toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 6})}&nbsp;${symbol}
               </div>
               {/* <div id="w-node-_3af69200-78c6-57b8-686c-10b9cbf7815d-8f74eee8" className="label">
                     Daily Earnings
