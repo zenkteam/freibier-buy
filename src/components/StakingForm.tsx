@@ -69,7 +69,7 @@ const StakingForm = ({ contract, tokenDetails, updateUserBalance, updateUserToke
       timestamp.setDate(timestamp.getDate() - 1);
       const timestampString = timestamp.toISOString();
       const limit = 700; // max: 1000
-      fetch(`https://api.tzkt.io/v1/contracts/${tokenDetails.swapContractAddress}/storage/history?limit=${limit}`)
+      fetch(`https://api.tzkt.io/v1/contracts/${tokenDetails.swapContract}/storage/history?limit=${limit}`)
         .then(res => res.json())
         .then(data => data.find((item: any) => item.timestamp < timestampString))
         .then(item => {

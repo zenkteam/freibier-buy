@@ -167,7 +167,7 @@ const Farm = ({ farmContractAddress, swapContractAddress }: FarmProps) => {
   }, [farmContractInstance]);
 
   useEffect(() => {
-    if (Tezos && farmStorage) {
+    if (Tezos && farmStorage && swapStorage) {
       updateFarmState(Tezos, farmStorage, swapStorage)
     }
   }, [Tezos, farmStorage, swapStorage])
