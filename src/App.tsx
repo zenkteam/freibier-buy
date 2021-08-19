@@ -55,7 +55,7 @@ const App = ({ swapContract }: AppProps) => {
           decimals: parseInt(bytes2Char(metdata['token_info'].get('decimals'))),
           shouldPreferSymbol: bytes2Char(metdata['token_info'].get('shouldPreferSymbol')) === 'true',
           coinContractAddress: coinContract,
-          swapContractAddress: swapContract,
+          swapContract: swapContract,
         }
         setTokenDetails(tokenDetails)
       } catch (e) {
@@ -202,7 +202,7 @@ const App = ({ swapContract }: AppProps) => {
                           </div>
                           <div className="grid-halves full-width">
                             <div id="w-node-_2bc1ab25-9a15-d706-5153-310495f51c01-856d06c6">DEX LP Contract</div>
-                            <div className="tiny-text">{tokenDetails?.swapContractAddress}</div>
+                            <div className="tiny-text">{tokenDetails?.swapContract}</div>
                           </div>
                           <div className="grid-halves full-width">
                             <div id="w-node-_2bc1ab25-9a15-d706-5153-310495f51c06-856d06c6">Total Supply</div>
@@ -225,7 +225,7 @@ const App = ({ swapContract }: AppProps) => {
                           <div className="graph-svg">
                             { tokenDetails &&
                               <PriceChart
-                                swapContractAddress={tokenDetails.swapContractAddress}
+                                swapContract={tokenDetails.swapContract}
                                 tokenDecimals={tokenDetails.decimals}
                               />
                             }

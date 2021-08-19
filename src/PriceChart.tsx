@@ -16,17 +16,17 @@ function process_pool_data(data: Array<any>, tokenDecimals: number) {
 }
 
 interface PriceChartProps {
-  swapContractAddress: string;
+  swapContract: string;
   tokenDecimals?: number;
 }
 
-const PriceChart = ({ swapContractAddress, tokenDecimals = 8 }: PriceChartProps) => {
+const PriceChart = ({ swapContract, tokenDecimals = 8 }: PriceChartProps) => {
   const [data, setData] = useState<Array<any>>([]);
 
   useEffect(() => {
     // load history
     const limit = 700; // max: 1000
-    fetch(`https://api.tzkt.io/v1/contracts/${swapContractAddress}/storage/history?limit=${limit}`)
+    fetch(`https://api.tzkt.io/v1/contracts/${swapContract}/storage/history?limit=${limit}`)
       .then(res => res.json())
       .then(data => process_pool_data(data, tokenDecimals))
       .then(data => data.reverse())
@@ -38,7 +38,7 @@ const PriceChart = ({ swapContractAddress, tokenDecimals = 8 }: PriceChartProps)
         }
       }))
       .then(data => setData(data))
-  }, [swapContractAddress, tokenDecimals])
+  }, [swapContract, tokenDecimals])
 
   const precision = data.length ? (data[data.length-1].y).toLocaleString(undefined, { minimumFractionDigits: 2, minimumSignificantDigits: 1, maximumSignificantDigits: 2 }).length - 2 : 5
 

@@ -2,7 +2,7 @@ import { NetworkType } from "@airgap/beacon-sdk";
 
 const config = {
   network: NetworkType.MAINNET,
-  rpcUrl: "https://rpc.tzbeta.net",
+  rpcUrl: "",
   defaultTezPrice: {
     last_updated_at: 1621264908,
     usd: 5.24,
@@ -17,6 +17,20 @@ const config = {
     usd_24h_vol: 0,
     usd_market_cap: 0,
   },
+  storageLimitSurcharge: 1.2, // multiplier
+  lpTokenDecimals: 1000000
+};
+
+switch (config.network) {
+  case NetworkType.MAINNET:
+    config.rpcUrl = "https://mainnet.api.tez.ie";
+    break;
+  case NetworkType.FLORENCENET:
+    config.rpcUrl = "https://rpc.florence.tzstats.com/";
+    break;
+  case NetworkType.CUSTOM:
+    config.rpcUrl = "http://localhost:8732/";
+    break;
 }
 
 export default config;
