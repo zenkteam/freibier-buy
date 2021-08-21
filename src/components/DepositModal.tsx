@@ -1,6 +1,7 @@
 
 import BigNumber from "bignumber.js";
 import React, { Dispatch, SetStateAction } from "react";
+import PenaltyInfo from './PenaltyInfo';
 
 interface DepositModalProps {
   hideDepositModal: Function
@@ -11,12 +12,18 @@ interface DepositModalProps {
   deposit: Function
   depositing: boolean
   symbol: string
+  penalty?: {
+    feePercentage: BigNumber
+    periodSeconds: BigNumber
+  }
+  personalLastUpdate?: Date
 }
 
-const DepositModal = ({ hideDepositModal, depositValue, setDepositValue, personalMaxDeposit, personalStake, deposit, depositing, symbol }: DepositModalProps) => {
+const DepositModal = ({ hideDepositModal, depositValue, setDepositValue, personalMaxDeposit, personalStake, deposit, depositing, symbol, penalty, personalLastUpdate }: DepositModalProps) => {
 
   const value = new BigNumber(depositValue)
   const disabled = value.isZero() || value > personalMaxDeposit || depositing
+
   return (
     <div id="modalWrapper" className="modal-wrapper" style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.8)', zIndex: 10 }} onClick={() => hideDepositModal()}>
 
@@ -93,6 +100,8 @@ const DepositModal = ({ hideDepositModal, depositValue, setDepositValue, persona
                   <div id="yearlyEarningsUsd" className="small-text align-right w-node-_1dde12e2-aefb-d3dc-3339-5f7f3e97821c-8f74eee8">
                     $0.00
                   </div> */}
+              
+              { penalty && <PenaltyInfo penalty={penalty} personalLastUpdate={personalLastUpdate}></PenaltyInfo>}
             </div>
 
             <input

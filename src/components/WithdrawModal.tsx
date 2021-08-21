@@ -1,6 +1,7 @@
 
 import BigNumber from "bignumber.js";
 import React, { Dispatch, SetStateAction } from "react";
+import PenaltyInfo from './PenaltyInfo';
 
 interface WithdrawModalProps {
   hideWithdrawModal: Function
@@ -10,12 +11,18 @@ interface WithdrawModalProps {
   withdraw: Function
   withdrawing: boolean
   symbol: string
+  penalty?: {
+    feePercentage: BigNumber
+    periodSeconds: BigNumber
+  }
+  personalLastUpdate?: Date
 }
 
-const WithdrawModal = ({ hideWithdrawModal, withdrawValue, setWithdrawValue, personalStake, withdraw, withdrawing, symbol }: WithdrawModalProps) => {
+const WithdrawModal = ({ hideWithdrawModal, withdrawValue, setWithdrawValue, personalStake, withdraw, withdrawing, symbol, penalty, personalLastUpdate }: WithdrawModalProps) => {
 
   const value = new BigNumber(withdrawValue)
   const disabled = value.isZero() || value.gt(personalStake) || withdrawing
+
   return (
     <div id="modalWrapper" className="modal-wrapper" style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.8)', zIndex: 10 }} onClick={() => hideWithdrawModal()}>
 
@@ -65,6 +72,8 @@ const WithdrawModal = ({ hideWithdrawModal, withdrawValue, setWithdrawValue, per
               <div id="TotalStaked" className="small-text align-right big w-node-_26bb2413-c0d4-5c9f-4953-309a53061659-8f74eee8">
                 {personalStake.toNumber().toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 6 })}&nbsp;${symbol}
               </div>
+
+              { penalty && <PenaltyInfo penalty={penalty} personalLastUpdate={personalLastUpdate}></PenaltyInfo>}
             </div>
 
             <input

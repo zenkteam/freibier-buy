@@ -4,6 +4,7 @@ import BigNumber from "bignumber.js";
 type DelegatorRecord = {
   lpTokenBalance: BigNumber;
   accumulatedRewardPerShareStart: BigNumber;
+  lastUpdate: Date;
 };
 
 type Address = string;
@@ -18,6 +19,10 @@ export interface FarmStorageInterface {
     claimedRewards: {
       unpaid: BigNumber;
       paid: BigNumber;
+    };
+    penalty: {
+      feePercentage: BigNumber;
+      periodSeconds: BigNumber;
     };
   };
   farmLpTokenBalance: BigNumber;
@@ -99,16 +104,23 @@ async function updateAccumulatedRewardPerShare(
   );
 }
 
-export async function delegatorReward(
+export async function delegatorRecord(
   Tezos: TezosToolkit,
   farmStorage: FarmStorageInterface
 ) {
   const delegatorAddress = await Tezos.wallet.pkh();
   const delegatorRecord = await farmStorage.delegators.get(delegatorAddress);
-  if (!delegatorRecord) {
-    return new BigNumber(0);
+  if (delegatorRecord) {
+    delegatorRecord.lastUpdate = new Date(delegatorRecord.lastUpdate)
   }
+  return delegatorRecord
+}
 
+export async function delegatorReward(
+  Tezos: TezosToolkit,
+  farmStorage: FarmStorageInterface,
+  delegatorRecord: DelegatorRecord,
+) {
   const accRewardPerShareStart = delegatorRecord.accumulatedRewardPerShareStart;
   const accRewardPerShareEnd = await updateAccumulatedRewardPerShare(Tezos, farmStorage);
   const accRewardPerShare = accRewardPerShareEnd.minus(
@@ -135,14 +147,8 @@ export async function getTotalStaked(
 }
 
 export async function getPersonalStake(
-  Tezos: TezosToolkit,
-  farmStorage: FarmStorageInterface
+  delegatorRecord: DelegatorRecord,
 ): Promise<BigNumber> {
-  const delegatorAddress = await Tezos.wallet.pkh();
-  const delegatorRecord = await farmStorage.delegators.get(delegatorAddress);
-  if (!delegatorRecord) {
-    return new BigNumber(0);
-  }
   return delegatorRecord.lpTokenBalance
 }
 

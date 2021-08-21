@@ -6,7 +6,7 @@ import DepositModal from './components/DepositModal';
 import DisconnectButton from "./components/DisconnectWallet";
 import WithdrawModal from './components/WithdrawModal';
 import config from "./config";
-import { delegatorReward, estimateAPR, FarmStorageInterface, getPersonalMaxDeposit, getPersonalStake, getTotalStaked, performClaim, performDeposit, performWithdraw } from './services/farmContract';
+import { delegatorRecord, delegatorReward, estimateAPR, FarmStorageInterface, getPersonalMaxDeposit, getPersonalStake, getTotalStaked, performClaim, performDeposit, performWithdraw } from './services/farmContract';
 
 interface FarmProps {
   farmContractAddress: string;
@@ -23,6 +23,7 @@ interface FarmType {
   personalMaxDeposit?: BigNumber,
   personalStake?: BigNumber,
   personalUnclaimedReward?: BigNumber,
+  personalLastUpdate?: Date,
   fromSymbol: string,
   fromDecimals: number,
   toSymbol: string,
@@ -37,6 +38,7 @@ let initialFarm: FarmType = {
   personalMaxDeposit: undefined,
   personalStake: undefined,
   personalUnclaimedReward: undefined,
+  personalLastUpdate: undefined,
   fromSymbol: "CVZA-QP",
   fromDecimals: 6,
   toSymbol: "CVZA",
@@ -129,10 +131,12 @@ const Farm = ({ farmContractAddress, swapContractAddress, startDate, endDate }: 
   }
 
   const updateFarmState = async (tezos: TezosToolkit, storage: FarmStorageInterface, swapStorage: any, user: string) => {
+    const delegator = user ? await delegatorRecord(tezos, storage) : undefined
     const update = {
       personalMaxDeposit: user ? await getPersonalMaxDeposit(swapStorage, user) : new BigNumber(0),
-      personalStake: user ? await getPersonalStake(tezos, storage) : new BigNumber(0),
-      personalUnclaimedReward: user ? await delegatorReward(tezos, storage) : new BigNumber(0),
+      personalStake: delegator ? await getPersonalStake(delegator) : new BigNumber(0),
+      personalUnclaimedReward: delegator ? await delegatorReward(tezos, storage, delegator) : new BigNumber(0),
+      personalLastUpdate: delegator?.lastUpdate,
       totalStaked: await getTotalStaked(storage),
       APR: await estimateAPR(storage, swapStorage),
     }
@@ -277,7 +281,7 @@ const Farm = ({ farmContractAddress, swapContractAddress, startDate, endDate }: 
                   <div
                     data-w-id="e799ee40-c2cf-545d-1c77-b15068d00b93"
                     data-animation-type="lottie"
-                    data-src="documents/lf30_editor_qdh1yqpy.json"
+                    data-src="https://uploads-ssl.webflow.com/611628d3fab35c8d64c4b6e6/611628d3fab35c01c8c4b8e1_lf30_editor_qdh1yqpy.json"
                     data-loop="1"
                     data-direction="1"
                     data-autoplay="1"
@@ -471,6 +475,8 @@ const Farm = ({ farmContractAddress, swapContractAddress, startDate, endDate }: 
               deposit={deposit}
               depositing={depoiting}
               symbol={farm.fromSymbol}
+              penalty={farmStorage?.farm.penalty}
+              personalLastUpdate={farm.personalLastUpdate}
             ></DepositModal>
           }
 
@@ -483,6 +489,8 @@ const Farm = ({ farmContractAddress, swapContractAddress, startDate, endDate }: 
               withdraw={withdraw}
               withdrawing={withdrawing}
               symbol={farm.fromSymbol}
+              penalty={farmStorage?.farm.penalty}
+              personalLastUpdate={farm.personalLastUpdate}
             ></WithdrawModal>
           }
         </div>
