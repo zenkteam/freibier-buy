@@ -31,26 +31,41 @@ export interface FarmStorageInterface {
   };
 }
 
-// TODO: check if calculation is right
 /**
- * Formula
- * APR = Total LP staked expressed as reward token / yearly reward in reward token
- *     = yearly reward / dexStorage.token_pool * LP
- *     = (reward per block * blocks per year) / dexStorage.token_pool * LP
+ * APR
+ *  =        CVZA yearly reward         /                 CVZA staked
+ *  = (block reward * blocks in 1 year) / (total CVZA-QP staked *      CVZA value of CVZA-QP         )
+ *  = (block reward * blocks in 1 year) / (totalStaked          * swap.token_pool / swap.total_supply)
  */
 export async function estimateAPR(
   farmStorage: FarmStorageInterface,
   swapStorage: any,
 ) {
-  const dexTokenPool = swapStorage.storage.token_pool as BigNumber;
-  const blocksPerYear = 365 * 24 * 60;
-  const APR = farmStorage.farm.plannedRewards.rewardPerBlock
-    .multipliedBy(blocksPerYear)
-    .dividedBy(dexTokenPool.multipliedBy(await getTotalStaked(farmStorage)))
-    //.dividedBy(100) // because of decimal difference of 100 between CVZA and XTZ
-    .multipliedBy(100); // to get percentage
+  const blockReward = farmStorage.farm.plannedRewards.rewardPerBlock
+  const blockTimeSeconds = 30
+  const blocksPerYear = new BigNumber(365 * 24 * 60 * 60 / blockTimeSeconds)
 
-  return APR;
+  const totalStaked = await getTotalStaked(farmStorage)
+  const swapTokenPool = swapStorage.storage.token_pool as BigNumber
+  const swapTotalSupply = swapStorage.storage.total_supply as BigNumber
+
+  const cvzaYearlyReward = blockReward.multipliedBy(blocksPerYear)
+  const cvzaStaked = totalStaked.multipliedBy(swapTokenPool).dividedBy(swapTotalSupply)
+
+  const APR = cvzaYearlyReward.dividedBy(cvzaStaked).multipliedBy(100) // to get percentage
+
+  console.debug({
+    blockReward: blockReward.toNumber(),
+    blocksPerYear: blocksPerYear.toNumber(),
+    totalStaked: totalStaked.toNumber(),
+    swapTokenPool: swapTokenPool.toNumber(),
+    swapTotalSupply: swapTotalSupply.toNumber(),
+    cvzaYearlyReward: cvzaYearlyReward.toNumber(),
+    cvzaStaked: cvzaStaked.toNumber(),
+    APR: APR.toNumber(),
+  })
+
+  return APR
 }
 
 async function updateAccumulatedRewardPerShare(

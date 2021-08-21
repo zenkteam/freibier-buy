@@ -218,8 +218,8 @@ const ExchangeForm = ({ contract, tokenDetails, updateUserBalance, updateUserTok
 
   return (
         <>
-          <div id="w-node-_15a9de31-66d8-0b4b-3b7b-19a314a9d93b-856d06c6" className="div-block-11">
-
+          <div id="form-input-1" className="div-block-11 w-node-_15a9de31-66d8-0b4b-3b7b-19a314a9d93b-43c4b6f7">
+          
             {!useDollar &&
               <>
                 <input
@@ -276,7 +276,7 @@ const ExchangeForm = ({ contract, tokenDetails, updateUserBalance, updateUserTok
               </div>
             </div>
           </div>
-          <div id="w-node-_15a9de31-66d8-0b4b-3b7b-19a314a9d940-856d06c6" className="div-block-8">
+          <div id="form-price-1" className="div-block-8 w-node-_15a9de31-66d8-0b4b-3b7b-19a314a9d940-43c4b6f7">
             <div className="div-block-9">
               <div className="div-block-10">
                 <img loading="lazy" alt="" className="token-img" src="https://uploads-ssl.webflow.com/6091079111aa5aff3f19582d/609bdfbc8ef4b38115354a8e_2011.png" />
@@ -301,7 +301,7 @@ const ExchangeForm = ({ contract, tokenDetails, updateUserBalance, updateUserTok
               }
             </div>
           </div>
-          <div id="w-node-dfb2f49c-1a5d-d200-b5d5-9b7a746613e7-856d06c6" className="div-block-11">
+          <div id="form-input-2" className="div-block-11 w-node-dfb2f49c-1a5d-d200-b5d5-9b7a746613e7-43c4b6f7">
             <input
               type="number"
               className="form-input form-input-large currency w-input"
@@ -322,7 +322,7 @@ const ExchangeForm = ({ contract, tokenDetails, updateUserBalance, updateUserTok
               ~${amountTokenDollar.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </div>
           </div>
-          <div id="w-node-_15a9de31-66d8-0b4b-3b7b-19a314a9d949-856d06c6" className="div-block-8">
+          <div id="form-price-2" className="div-block-8 w-node-_15a9de31-66d8-0b4b-3b7b-19a314a9d949-43c4b6f7">
             <div className="div-block-9">
               <div className="div-block-10">
                 <img loading="lazy" alt="" className="token-img" src={tokenDetails?.thumbnailUri} />
