@@ -45,6 +45,7 @@ const WithdrawModal = ({ hideWithdrawModal, withdrawValue, setWithdrawValue, per
                 value={withdrawValue}
                 disabled={withdrawing}
                 onChange={(e) => setWithdrawValue(e.target.value)}
+                style={{paddingRight: 16}}
               />
               <div className="div-block-18">
                 <div>Pool Token</div>
@@ -70,7 +71,7 @@ const WithdrawModal = ({ hideWithdrawModal, withdrawValue, setWithdrawValue, per
                 You Staked
               </div>
               <div id="TotalStaked" className="small-text align-right big w-node-_26bb2413-c0d4-5c9f-4953-309a53061659-8f74eee8">
-                {personalStake.toNumber().toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 6 })}&nbsp;${symbol}
+                {personalStake.toNumber().toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 6 })} <span>${symbol}</span>
               </div>
 
               { penalty && <PenaltyInfo penalty={penalty} personalLastUpdate={personalLastUpdate}></PenaltyInfo>}

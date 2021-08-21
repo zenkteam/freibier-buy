@@ -261,7 +261,7 @@ const Farm = ({ farmContractAddress, swapContractAddress, startDate, endDate }: 
   return (
     <div className="section bg-gray-1">
       <div className="container">
-        <div className="wrapper" style={{ position: 'relative' }}>
+        <div className="wrapper">
           <div className="farm">
             <div className="farm-title-wrapper">
               <div className="farm-titel">
@@ -353,7 +353,7 @@ const Farm = ({ farmContractAddress, swapContractAddress, startDate, endDate }: 
               <div id="endDate" className="farm-enddate">
                 {farm.endDate.toDateString()}
               </div>
-              <div className="label">Your stake (${farm.fromSymbol})</div>
+              <div className="label">Your stake <span style={{whiteSpace: 'nowrap'}}>(${farm.fromSymbol})</span></div>
               <div id="yourStake" className="farm-yourstake">
                 {farm.personalStake?.shiftedBy(-farm.fromDecimals).toNumber().toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: farm.fromDecimals })}
               </div>

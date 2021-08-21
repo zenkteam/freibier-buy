@@ -46,6 +46,7 @@ const DepositModal = ({ hideDepositModal, depositValue, setDepositValue, persona
                 value={depositValue}
                 disabled={depositing}
                 onChange={(e) => setDepositValue(e.target.value)}
+                style={{paddingRight: 16}}
               />
               <div className="div-block-18">
                 <div>Pool Token</div>
@@ -71,7 +72,7 @@ const DepositModal = ({ hideDepositModal, depositValue, setDepositValue, persona
                 You Staked
               </div>
               <div id="TotalStaked" className="small-text align-right big w-node-_26bb2413-c0d4-5c9f-4953-309a53061659-8f74eee8">
-                {personalStake.toNumber().toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 6})}&nbsp;${symbol}
+                {personalStake.toNumber().toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 6})} <span>${symbol}</span>
               </div>
               {/* <div id="w-node-_3af69200-78c6-57b8-686c-10b9cbf7815d-8f74eee8" className="label">
                     Daily Earnings
