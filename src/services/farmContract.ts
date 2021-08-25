@@ -154,7 +154,11 @@ export async function getPersonalStake(
 
 export async function getPersonalMaxDeposit(swapStorage: any, userAddress: string) {
   const user = await swapStorage.storage.ledger.get(userAddress)
-  return user.balance
+  if (user) {
+    return user.balance as BigNumber
+  } else {
+    return new BigNumber(0)
+  }
 }
 
 /**

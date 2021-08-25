@@ -50,7 +50,7 @@ const ConnectButton = ({
       Tezos.setWalletProvider(wallet);
       Tracker.trackEvent('connect_success', { type: 'wallet'});
     } catch (error) {
-      console.log(error);
+      console.error(error);
       setLoadingWallet(false);
     }
   };
@@ -69,7 +69,7 @@ const ConnectButton = ({
       await setup(userAddress);
       Tracker.trackEvent('connect_success', { type: 'nano'});
     } catch (error) {
-      console.log("Error!", error);
+      console.error("Error!", error);
       setLoadingNano(false);
     }
   };

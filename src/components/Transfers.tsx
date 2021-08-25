@@ -26,7 +26,7 @@ const Transfers = ({
         const balance = await Tezos.tz.getBalance(userAddress);
         setUserBalance(balance.toNumber());
       } catch (error) {
-        console.log(error);
+        console.error(error);
       } finally {
         setLoading(false);
       }

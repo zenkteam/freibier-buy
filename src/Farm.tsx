@@ -381,10 +381,10 @@ const Farm = ({ farmContractAddress, swapContractAddress, startDate, endDate }: 
                 <button
                   id="deposit"
                   onClick={() => setShowDepositModal(true)}
-                  disabled={depoiting}
+                  disabled={depoiting || withdrawing || claiming}
                   className={
                     'farm-buttons w-node-_58d63a0e-4a37-39e2-c3d7-2d81eefd4bbe-8f74eee8 w-inline-block'
-                    + (!depoiting ? ' active' : '')
+                    + (!depoiting && !withdrawing && !claiming ? ' active' : '')
                   }
                 >
                   <div className="button-label-main">
@@ -402,10 +402,10 @@ const Farm = ({ farmContractAddress, swapContractAddress, startDate, endDate }: 
                 <button
                   id="claim"
                   onClick={() => claim()}
-                  disabled={claiming || farm.personalUnclaimedReward?.isZero()}
+                  disabled={depoiting || withdrawing || claiming || farm.personalUnclaimedReward?.isZero()}
                   className={
                     'farm-buttons w-node-_58d63a0e-4a37-39e2-c3d7-2d81eefd4bbe-8f74eee8 w-inline-block'
-                    + (farm.personalUnclaimedReward && !farm.personalUnclaimedReward.isZero() && !claiming ? ' active' : '')
+                    + (farm.personalUnclaimedReward && !farm.personalUnclaimedReward.isZero() && !depoiting && !withdrawing && !claiming ? ' active' : '')
                   }
                 >
                   <div className="button-label-main">
@@ -420,17 +420,17 @@ const Farm = ({ farmContractAddress, swapContractAddress, startDate, endDate }: 
                 <button
                   id="withdraw"
                   onClick={() => setShowWithdrawModal(true)}
-                  disabled={withdrawing || farm.personalStake?.isZero()}
+                  disabled={depoiting || withdrawing || claiming || farm.personalStake?.isZero()}
                   className={
                     'farm-buttons w-node-_58d63a0e-4a37-39e2-c3d7-2d81eefd4bbe-8f74eee8 w-inline-block '
-                    + (farm.personalStake && !farm.personalStake.isZero() && !withdrawing ? 'active' : '')
+                    + (farm.personalStake && !farm.personalStake.isZero() && !depoiting && !withdrawing && !claiming ? 'active' : '')
                   }
                 >
                   <div className="button-label-main">
                     {withdrawing ? 'Withdrawing...' : 'Withdraw'}
                   </div>
                   <div className="tiny-text _50">
-                    <span className="tokennameinput">${farm.fromSymbol}</span>
+                    <span className="tokennameinput">Withdraw and claim</span>
                   </div>
                 </button>
 
@@ -439,10 +439,10 @@ const Farm = ({ farmContractAddress, swapContractAddress, startDate, endDate }: 
                 <button
                   id="exit"
                   onClick={() => exit()}
-                  disabled={exiting || farm.personalStake?.isZero()}
+                  disabled={exiting || depoiting || withdrawing || claiming || farm.personalStake?.isZero()}
                   className={
                     'farm-buttons w-node-_58d63a0e-4a37-39e2-c3d7-2d81eefd4bbe-8f74eee8 w-inline-block '
-                    + (farm.personalStake && !farm.personalStake!.isZero() && !exiting ? 'active' : '')
+                    + (farm.personalStake && !farm.personalStake!.isZero() && !exiting && !depoiting && !withdrawing && !claiming ? 'active' : '')
                   }
                 >
                   <div className="button-label-main">

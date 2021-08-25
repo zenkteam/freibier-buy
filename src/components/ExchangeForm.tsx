@@ -186,7 +186,7 @@ const ExchangeForm = ({ contract, tokenDetails, updateUserBalance, updateUserTok
         [tokenDetails.symbol]: minToken,
       });
     } catch (error) {
-      console.log(error);
+      console.error(error);
     } finally {
       setLoadingBuy(false);
     }
