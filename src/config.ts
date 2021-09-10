@@ -23,7 +23,7 @@ const config = {
 
 switch (config.network) {
   case NetworkType.MAINNET:
-    config.rpcUrl = "https://rpc.tzstats.com";
+    config.rpcUrl = "https://mainnet.smartpy.io/";
     break;
   case NetworkType.FLORENCENET:
     config.rpcUrl = "https://rpc.florence.tzstats.com/";
