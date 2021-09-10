@@ -23,6 +23,11 @@ const WithdrawModal = ({ hideWithdrawModal, withdrawValue, setWithdrawValue, per
   const value = new BigNumber(withdrawValue)
   const disabled = value.isZero() || value.gt(personalStake) || withdrawing
 
+  const parseWithdrawValue = (value: string) => {
+    const parsed = value.replaceAll(',', '.')
+    setWithdrawValue(parsed)
+  }
+
   return (
     <div id="modalWrapper" className="modal-wrapper" style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.8)', zIndex: 10 }} onClick={() => hideWithdrawModal()}>
 
@@ -36,7 +41,9 @@ const WithdrawModal = ({ hideWithdrawModal, withdrawValue, setWithdrawValue, per
 
             <div className="div-block-11">
               <input
-                type="number"
+                type="text"
+                inputMode="numeric"
+                pattern="[0-9,.]*"
                 className="form-farm w-input"
                 name="depositAmount"
                 data-name="depositAmount"
@@ -44,7 +51,7 @@ const WithdrawModal = ({ hideWithdrawModal, withdrawValue, setWithdrawValue, per
                 id="depositAmount-2"
                 value={withdrawValue}
                 disabled={withdrawing}
-                onChange={(e) => setWithdrawValue(e.target.value)}
+                onChange={(e) => parseWithdrawValue(e.target.value)}
                 style={{paddingRight: 16}}
               />
               <div className="div-block-18">

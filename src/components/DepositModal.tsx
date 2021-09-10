@@ -24,6 +24,11 @@ const DepositModal = ({ hideDepositModal, depositValue, setDepositValue, persona
   const value = new BigNumber(depositValue)
   const disabled = value.isZero() || value > personalMaxDeposit || depositing
 
+  const parseDepositValue = (value: string) => {
+    const parsed = value.replaceAll(',', '.')
+    setDepositValue(parsed)
+  }
+
   return (
     <div id="modalWrapper" className="modal-wrapper" style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.8)', zIndex: 10 }} onClick={() => hideDepositModal()}>
 
@@ -37,7 +42,9 @@ const DepositModal = ({ hideDepositModal, depositValue, setDepositValue, persona
 
             <div className="div-block-11">
               <input
-                type="number"
+                type="text"
+                inputMode="numeric"
+                pattern="[0-9,.]*"
                 className="form-farm w-input"
                 name="depositAmount"
                 data-name="depositAmount"
@@ -45,7 +52,7 @@ const DepositModal = ({ hideDepositModal, depositValue, setDepositValue, persona
                 id="depositAmount-2"
                 value={depositValue}
                 disabled={depositing}
-                onChange={(e) => setDepositValue(e.target.value)}
+                onChange={(e) => parseDepositValue(e.target.value)}
                 style={{paddingRight: 16}}
               />
               <div className="div-block-18">
