@@ -1,0 +1,17 @@
+{
+  "files": {
+    "main.js": "/freibier-buy/static/js/main.30b5e83c.chunk.js",
+    "main.js.map": "/freibier-buy/static/js/main.30b5e83c.chunk.js.map",
+    "runtime-main.js": "/freibier-buy/static/js/runtime-main.99d6d61c.js",
+    "runtime-main.js.map": "/freibier-buy/static/js/runtime-main.99d6d61c.js.map",
+    "static/js/2.1f86937b.chunk.js": "/freibier-buy/static/js/2.1f86937b.chunk.js",
+    "static/js/2.1f86937b.chunk.js.map": "/freibier-buy/static/js/2.1f86937b.chunk.js.map",
+    "index.html": "/freibier-buy/index.html",
+    "static/js/2.1f86937b.chunk.js.LICENSE.txt": "/freibier-buy/static/js/2.1f86937b.chunk.js.LICENSE.txt"
+  },
+  "entrypoints": [
+    "static/js/runtime-main.99d6d61c.js",
+    "static/js/2.1f86937b.chunk.js",
+    "static/js/main.30b5e83c.chunk.js"
+  ]
+}
