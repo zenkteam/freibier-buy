@@ -2,6 +2,7 @@
   "name": "freibier-buy",
   "version": "0.1.0",
   "dependencies": {
+    "@airgap/beacon-sdk": "^2.3.13",
     "@ledgerhq/hw-transport-u2f": "^5.22.0",
     "@taquito/beacon-wallet": "^10.1.0",
     "@taquito/ledger-signer": "^10.1.0",
